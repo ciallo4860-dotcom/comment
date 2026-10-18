@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>反应速度测试 · 小游戏</title>
+<style>
+  :root {
+    --accent: #2055b8; --accent2: #648cc7;
+    --bg: linear-gradient(140deg, #edf1f8 0%, #e8edf6 45%, #e4eaf4 100%);
+    --text: #333d52; --muted: #6a7698;
+    --panel: #ffffff; --border: #e3e8f0; --cell: #eaf0f8;
+  }
+  body.dark {
+    --bg: linear-gradient(140deg, #121826 0%, #141b2c 45%, #161e30 100%);
+    --text: #e7eaf0; --muted: #9aa6bd;
+    --panel: #1b2334; --border: #29324a; --cell: #26304a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: "Microsoft YaHei","PingFang SC",sans-serif;
+    background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; padding: 16px; transition: background .3s, color .3s; }
+  #themeBtn { position: fixed; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 18px; cursor: pointer; z-index: 10; }
+  .wrap { width: 100%; max-width: 460px; }
+  header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  header h1 { margin: 0; font-size: 24px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+  .stats { display: flex; gap: 8px; margin-left: auto; }
+  .box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 5px 12px; text-align: center; min-width: 64px; }
+  .box span { display: block; font-size: 11px; color: var(--muted); }
+  .box b { font-size: 18px; }
+  .area {
+    height: 260px; border-radius: 16px; border: 1px solid var(--border);
+    background: var(--panel); display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: var(--muted); cursor: pointer; user-select: none;
+    transition: background .15s, color .15s; text-align: center; padding: 20px; line-height: 1.6;
+    box-shadow: 0 8px 24px rgba(30,60,120,.14);
+  }
+  .area small { font-size: 14px; opacity: .8; }
+  .area.waiting { background: #d95d4e; color: #fff; }
+  .area.ready { background: #2e9e5b; color: #fff; }
+  .area.done { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .hint { text-align: center; color: var(--muted); font-size: 13px; margin: 12px 0 0; }
+  #results { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .row { display: flex; justify-content: space-between; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; font-size: 14px; }
+  .row b { color: var(--accent); }
+</style>
+</head>
+<body>
+<button id="themeBtn" title="切换深色 / 浅色">🌙</button>
+<div class="wrap">
+  <header>
+    <h1>反应速度测试</h1>
+    <div class="stats">
+      <div class="box"><span>最佳</span><b id="best">--</b></div>
+      <div class="box"><span>平均</span><b id="avg">--</b></div>
+    </div>
+  </header>
+  <div class="area" id="area">点击开始测试<br><small>共 5 次</small></div>
+  <p class="hint">等面板变绿后，用最快速度点击</p>
+  <div id="results"></div>
+</div>
+<script>
+  const ROUNDS = 5;
+  const area = document.getElementById('area');
+  const resultsEl = document.getElementById('results');
+  const bestEl = document.getElementById('best');
+  const avgEl = document.getElementById('avg');
+  let phase = 'idle', startTime = 0, timeout = null, results = [];
+
+  function setArea(cls, html) { area.className = 'area' + (cls ? ' ' + cls : ''); area.innerHTML = html; }
+
+  function startWait() {
+    phase = 'waiting';
+    setArea('waiting', '等待变绿…');
+    const delay = 1000 + Math.random() * 3000;
+    timeout = setTimeout(() => {
+      phase = 'ready';
+      setArea('ready', '点！');
+      startTime = performance.now();
+    }, delay);
+  }
+
+  function renderStats() {
+    if (results.length) {
+      bestEl.textContent = Math.min.apply(null, results) + 'ms';
+      avgEl.textContent = Math.round(results.reduce((a, b) => a + b, 0) / results.length) + 'ms';
+    } else { bestEl.textContent = '--'; avgEl.textContent = '--'; }
+    resultsEl.innerHTML = results.map((t, i) =>
+      '<div class="row"><span>第 ' + (i + 1) + ' 次</span><b>' + t + ' ms</b></div>').join('');
+  }
+
+  area.addEventListener('click', () => {
+    if (phase === 'idle') { results = []; renderStats(); startWait(); }
+    else if (phase === 'waiting') {
+      clearTimeout(timeout); phase = 'idle';
+      setArea('', '点太早了！<br>点击重新开始');
+    }
+    else if (phase === 'ready') {
+      const t = Math.round(performance.now() - startTime);
+      results.push(t); renderStats();
+      if (results.length >= ROUNDS) {
+        phase = 'done';
+        setArea('done', '完成！<br>平均 ' + avgEl.textContent + '<br>点击重测');
+      } else {
+        phase = 'idle';
+        setArea('', t + ' ms<br>点击继续（' + results.length + '/' + ROUNDS + '）');
+      }
+    }
+    else if (phase === 'done') { results = []; renderStats(); startWait(); }
+  });
+
+  const themeBtn = document.getElementById('themeBtn');
+  try { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark'); } catch (e) {}
+  function sync() { themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙'; }
+  sync();
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+    sync();
+  });
+</script>
+</body>
+</html>

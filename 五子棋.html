@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>五子棋 · 小游戏</title>
+<style>
+  :root {
+    --accent: #2055b8; --accent2: #648cc7;
+    --bg: linear-gradient(140deg, #edf1f8 0%, #e8edf6 45%, #e4eaf4 100%);
+    --text: #333d52; --muted: #6a7698;
+    --panel: #ffffff; --border: #e3e8f0; --cell: #eaf0f8;
+  }
+  body.dark {
+    --bg: linear-gradient(140deg, #121826 0%, #141b2c 45%, #161e30 100%);
+    --text: #e7eaf0; --muted: #9aa6bd;
+    --panel: #1b2334; --border: #29324a; --cell: #26304a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: "Microsoft YaHei","PingFang SC",sans-serif;
+    background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; padding: 16px; transition: background .3s, color .3s; }
+  #themeBtn { position: fixed; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 18px; cursor: pointer; z-index: 10; }
+  .wrap { width: 100%; max-width: 470px; }
+  header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 24px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+  .mode { margin-left: auto; display: flex; gap: 6px; }
+  .btn { border: none; cursor: pointer; font-size: 13px; padding: 8px 13px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .btn.ghost { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+  .btn.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .status { text-align: center; font-size: 15px; margin: 0 0 10px; min-height: 22px; }
+  canvas { display: block; width: 100%; border-radius: 14px; border: 1px solid var(--border); background: var(--panel); box-shadow: 0 8px 24px rgba(30,60,120,.14); touch-action: none; }
+  .score { display: flex; gap: 8px; margin-top: 12px; }
+  .box { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; text-align: center; padding: 6px 8px; }
+  .box span { display: block; font-size: 11px; color: var(--muted); }
+  .box b { font-size: 17px; }
+  .overlay { position: fixed; inset: 0; background: rgba(15,22,34,.55); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s; z-index: 20; }
+  .overlay.show { opacity: 1; visibility: visible; }
+  .overlay-box { background: var(--panel); color: var(--text); border-radius: 14px; padding: 24px 30px; text-align: center; }
+  .overlay-box h2 { margin: 0 0 14px; }
+</style>
+</head>
+<body>
+<button id="themeBtn" title="切换深色 / 浅色">🌙</button>
+<div class="wrap">
+  <header>
+    <h1>五子棋</h1>
+    <div class="mode">
+      <button class="btn ghost" id="pvpBtn">双人</button>
+      <button class="btn ghost" id="aiBtn">人机</button>
+    </div>
+    <button class="btn" id="reset">重来</button>
+  </header>
+  <p class="status" id="status">轮到 黑方</p>
+  <canvas id="cv" width="460" height="460"></canvas>
+  <div class="score">
+    <div class="box"><span>⚫ 黑方</span><b id="blackScore">0</b></div>
+    <div class="box"><span>⚪ 白方</span><b id="whiteScore">0</b></div>
+  </div>
+</div>
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <h2 id="overTitle"></h2>
+    <button class="btn" id="again">再来一局</button>
+  </div>
+</div>
+<script>
+  const SIZE = 15, M = 20, CELL = 30;
+  const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  const statusEl = document.getElementById('status');
+  const blackEl = document.getElementById('blackScore'), whiteEl = document.getElementById('whiteScore');
+  const overlay = document.getElementById('overlay'), overTitle = document.getElementById('overTitle');
+  const DIRS = [[1,0],[0,1],[1,1],[1,-1]];
+  const BLACK = 1, WHITE = 2;
+  let g, turn, over, mode = 'pvp', score = { 1: 0, 2: 0 };
+
+  function empty() { return Array.from({ length: SIZE }, () => Array(SIZE).fill(0)); }
+  function inb(r, c) { return r >= 0 && r < SIZE && c >= 0 && c < SIZE; }
+
+  function draw() {
+    const cs = getComputedStyle(document.body);
+    ctx.fillStyle = cs.getPropertyValue('--panel');
+    ctx.fillRect(0, 0, 460, 460);
+    ctx.strokeStyle = cs.getPropertyValue('--border');
+    ctx.lineWidth = 1;
+    for (let i = 0; i < SIZE; i++) {
+      ctx.beginPath(); ctx.moveTo(M, M + i * CELL); ctx.lineTo(M + 14 * CELL, M + i * CELL); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(M + i * CELL, M); ctx.lineTo(M + i * CELL, M + 14 * CELL); ctx.stroke();
+    }
+    // 星位
+    ctx.fillStyle = cs.getPropertyValue('--accent');
+    [[3,3],[3,11],[11,3],[11,11],[7,7]].forEach(([r,c]) => {
+      ctx.beginPath(); ctx.arc(M + c * CELL, M + r * CELL, 4, 0, Math.PI * 2); ctx.fill();
+    });
+    // 棋子
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+      if (!g[r][c]) continue;
+      const x = M + c * CELL, y = M + r * CELL;
+      ctx.beginPath(); ctx.arc(x, y, 13, 0, Math.PI * 2);
+      if (g[r][c] === BLACK) { ctx.fillStyle = '#23262b'; ctx.fill(); }
+      else { ctx.fillStyle = '#f4f6fa'; ctx.fill(); ctx.strokeStyle = '#c6ccd8'; ctx.lineWidth = 1; ctx.stroke(); }
+    }
+  }
+
+  function countDir(r, c, dr, dc, color) {
+    let n = 0, rr = r + dr, cc = c + dc;
+    while (inb(rr, cc) && g[rr][cc] === color) { n++; rr += dr; cc += dc; }
+    return n;
+  }
+  function checkWin(r, c, color) {
+    for (const [dr, dc] of DIRS) {
+      let cnt = 1 + countDir(r, c, dr, dc, color) + countDir(r, c, -dr, -dc, color);
+      if (cnt >= 5) return true;
+    }
+    return false;
+  }
+
+  function place(r, c, color) {
+    g[r][c] = color;
+    draw();
+    if (checkWin(r, c, color)) {
+      over = true; score[color]++;
+      blackEl.textContent = score[1]; whiteEl.textContent = score[2];
+      const who = color === BLACK ? '黑方' : '白方';
+      statusEl.textContent = who + ' 赢了！';
+      overTitle.textContent = (mode === 'ai' && color === WHITE) ? '😵 电脑赢了' : '🎉 ' + who + ' 赢了！';
+      setTimeout(() => overlay.classList.add('show'), 350);
+      return true;
+    }
+    if (g.every(row => row.every(v => v))) {
+      over = true; statusEl.textContent = '平局'; overTitle.textContent = '🤝 平局';
+      setTimeout(() => overlay.classList.add('show'), 350);
+      return true;
+    }
+    return false;
+  }
+
+  function onCell(r, c) {
+    if (over || g[r][c]) return;
+    if (mode === 'ai' && turn === WHITE) return;
+    const done = place(r, c, turn);
+    if (done) return;
+    turn = turn === BLACK ? WHITE : BLACK;
+    statusEl.textContent = '轮到 ' + (turn === BLACK ? '黑方' : '白方');
+    if (mode === 'ai' && turn === WHITE) setTimeout(aiMove, 420);
+  }
+
+  function scoreOf(cnt) { if (cnt >= 5) return 100000; if (cnt === 4) return 10000; if (cnt === 3) return 1000; if (cnt === 2) return 100; if (cnt === 1) return 10; return 0; }
+  function lineLen(r, c, color) {
+    let t = 0;
+    for (const [dr, dc] of DIRS) t += scoreOf(1 + countDir(r, c, dr, dc, color) + countDir(r, c, -dr, -dc, color));
+    return t;
+  }
+  function aiMove() {
+    if (over) return;
+    let best = -1, br = -1, bc = -1;
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+      if (g[r][c]) continue;
+      const s = lineLen(r, c, WHITE) + lineLen(r, c, BLACK) * 1.2;
+      if (s > best) { best = s; br = r; bc = c; }
+    }
+    if (br < 0) { br = 7; bc = 7; }
+    const done = place(br, bc, WHITE);
+    if (!done) { turn = BLACK; statusEl.textContent = '轮到 黑方'; }
+  }
+
+  function reset() {
+    g = empty(); turn = BLACK; over = false; overlay.classList.remove('show');
+    statusEl.textContent = '轮到 黑方';
+    draw();
+  }
+
+  cv.addEventListener('click', e => {
+    const rect = cv.getBoundingClientRect();
+    const scale = 460 / rect.width;
+    const x = (e.clientX - rect.left) * scale, y = (e.clientY - rect.top) * scale;
+    const c = Math.round((x - M) / CELL), r = Math.round((y - M) / CELL);
+    if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return;
+    if (Math.hypot(x - (M + c * CELL), y - (M + r * CELL)) > 15) return;
+    onCell(r, c);
+  });
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById('pvpBtn').classList.toggle('active', m === 'pvp');
+    document.getElementById('aiBtn').classList.toggle('active', m === 'ai');
+    reset();
+  }
+  document.getElementById('pvpBtn').addEventListener('click', () => setMode('pvp'));
+  document.getElementById('aiBtn').addEventListener('click', () => setMode('ai'));
+  document.getElementById('reset').addEventListener('click', reset);
+  document.getElementById('again').addEventListener('click', reset);
+
+  const themeBtn = document.getElementById('themeBtn');
+  try { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark'); } catch (e) {}
+  function sync() { themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙'; }
+  sync();
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+    sync(); draw();
+  });
+
+  setMode('pvp');
+</script>
+</body>
+</html>

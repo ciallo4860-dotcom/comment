@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>招募 · BA 风格抽卡</title>
+<style>
+  :root {
+    --accent: #2d8ce6; --accent2: #5bb0ff;
+    --bg: linear-gradient(160deg, #d6ecff 0%, #eaf6ff 50%, #dbe9ff 100%);
+    --text: #27425f; --muted: #6b8aa8;
+    --panel: #ffffff; --border: #cfe4f7; --cell: #eaf4fd;
+  }
+  body.dark {
+    --bg: linear-gradient(160deg, #0a1523 0%, #101f30 50%, #0d1a2b 100%);
+    --text: #e3eefb; --muted: #8aa4bf;
+    --panel: #14243a; --border: #27405c; --cell: #1b3048;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: "Microsoft YaHei","PingFang SC",sans-serif;
+    background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; padding: 16px; transition: background .3s, color .3s; }
+  #themeBtn { position: fixed; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 18px; cursor: pointer; z-index: 10; }
+  .wrap { width: 100%; max-width: 460px; }
+  header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  header h1 { margin: 0; font-size: 24px; background: linear-gradient(90deg, #2d8ce6, #5bb0ff);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+  .stats { display: flex; gap: 8px; margin-left: auto; }
+  .box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 5px 12px; text-align: center; min-width: 60px; }
+  .box span { display: block; font-size: 11px; color: var(--muted); }
+  .box b { font-size: 17px; }
+  .controls { display: flex; gap: 10px; margin-bottom: 16px; }
+  .btn { border: none; cursor: pointer; font-size: 15px; padding: 12px; border-radius: 12px;
+    background: linear-gradient(135deg, #2d8ce6, #5bb0ff); color: #fff; flex: 1; transition: transform .15s, filter .15s; box-shadow: 0 3px 12px rgba(45,140,230,.3); }
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+  .btn.ghost { background: var(--panel); color: var(--text); border: 1px solid var(--border); flex: 0 0 auto; padding: 12px 16px; box-shadow: none; }
+  #results { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; min-height: 80px; }
+  .card { position: relative; aspect-ratio: 5 / 7; border-radius: 12px; display: flex; flex-direction: column; align-items: center; padding: 42px 4px 8px; gap: 4px; animation: flipIn .5s ease backwards; }
+  .card.s1 { background: linear-gradient(180deg, #eef3f8, #dde6f0); border: 1px solid #c3d0de; }
+  .card.s2 { background: linear-gradient(180deg, #eaf3ff, #d3e6ff); border: 1px solid #8fb9ec; box-shadow: 0 0 10px rgba(91,142,224,.22); }
+  .card.s3 { background: linear-gradient(180deg, #fff6d4, #ffe19a); border: 1px solid #f0b93f; box-shadow: 0 0 16px rgba(240,185,63,.45); }
+  .halo { position: absolute; top: 8px; left: 50%; transform: translateX(-50%) rotate(-6deg);
+    width: 38px; height: 38px; border-radius: 50%; border: 3px solid rgba(127,196,255,.95);
+    box-shadow: 0 0 14px rgba(96,170,255,.9), inset 0 0 6px rgba(160,210,255,.6); }
+  .face { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-weight: bold; box-shadow: 0 2px 8px rgba(30,60,120,.25); }
+  .face.s1 { background: linear-gradient(135deg, #aebfd2, #8ea3bb); }
+  .face.s2 { background: linear-gradient(135deg, #7fb2f0, #5b8de0); }
+  .face.s3 { background: linear-gradient(135deg, #ffd54a, #f0a832); }
+  .stars { font-size: 11px; letter-spacing: 1px; }
+  .stars.s1 { color: #8a9bb0; }
+  .stars.s2 { color: #5b8de0; }
+  .stars.s3 { color: #e6a71e; text-shadow: 0 0 8px rgba(230,167,30,.5); }
+  .name { font-size: 12px; font-weight: bold; line-height: 1.3; }
+  @keyframes flipIn { 0% { opacity: 0; transform: perspective(600px) rotateY(85deg); } 60% { opacity: 1; transform: perspective(600px) rotateY(-8deg); } 100% { opacity: 1; transform: none; } }
+  .empty-hint { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 13px; padding: 30px 0; }
+  .hint { text-align: center; color: var(--muted); font-size: 12px; margin-top: 16px; line-height: 1.9; }
+
+  /* 招募开屏：播放动画视频 */
+  .recruit-screen { position: fixed; inset: 0; z-index: 50; overflow: hidden; background: #000;
+    opacity: 0; visibility: hidden; transition: opacity .3s, visibility .3s; }
+  .recruit-screen.show { opacity: 1; visibility: visible; }
+  .recruit-screen video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
+  .skip { position: absolute; right: 16px; bottom: 28px; z-index: 2; padding: 9px 18px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.5); background: rgba(0,0,0,.35); color: #fff; font-size: 14px; cursor: pointer; backdrop-filter: blur(4px); }
+  .skip:hover { background: rgba(0,0,0,.55); }
+  .gold-flash { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 50%, rgba(255,224,102,.95), rgba(255,180,40,.55) 45%, transparent 75%);
+    opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s; }
+  .gold-flash.show { opacity: 1; visibility: visible; }
+  .gold-text { color: #fff; font-size: 44px; font-weight: bold; text-shadow: 0 0 20px rgba(255,255,255,.9), 0 3px 16px rgba(180,120,0,.6); animation: goldPop .8s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes goldPop { 0% { transform: scale(.2) rotate(-12deg); opacity: 0; } 50% { transform: scale(1.25); opacity: 1; } 100% { transform: scale(1); } }
+</style>
+</head>
+<body>
+<button id="themeBtn" title="切换深色 / 浅色">🌙</button>
+<div class="wrap">
+  <header>
+    <h1>招募</h1>
+    <div class="stats">
+      <div class="box"><span>总招募</span><b id="total">0</b></div>
+      <div class="box"><span>三星</span><b id="s3">0</b></div>
+      <div class="box"><span>距保底</span><b id="pity">200</b></div>
+    </div>
+  </header>
+  <div class="controls">
+    <button class="btn" id="one">单次招募</button>
+    <button class="btn" id="ten">十次招募</button>
+    <button class="btn ghost" id="reset">重置</button>
+  </div>
+  <div id="results"><div class="empty-hint">点「单次招募」或「十次招募」试试手气～</div></div>
+  <p class="hint">★ 三星 3% · 二星 18% · 一星 79%<br>十次招募保底一张二星以上 · 200 招募必出三星</p>
+</div>
+
+<div class="recruit-screen" id="screen">
+  <video id="recruitVideo" src="recruit.mp4" playsinline preload="auto"></video>
+  <button class="skip" id="skipBtn">跳过 ⏭</button>
+</div>
+<div class="gold-flash" id="goldFlash">
+  <div class="gold-text">★ 3★ ★</div>
+</div>
+<script>
+  // ✏️ 卡池可自行增删（名字随便改）
+  const POOL = {
+    3: ['白子', '星野', '未花', '日奈', '阿露', '若藻', '玛丽', '花梨', '爱丽丝', '凯伊'],
+    2: ['芹香', '千夏', '伊织', '绫音', '睦月', '加代子', '野乃香', '菲娜'],
+    1: ['静子', '日步美', '春', '美咲', '惠', '雅美', '爱瑠', '小空']
+  };
+  const STAR = { 3: '★★★', 2: '★★', 1: '★' };
+  const totalEl = document.getElementById('total'), s3El = document.getElementById('s3'), pityEl = document.getElementById('pity');
+  const resultsEl = document.getElementById('results');
+  let total = 0, s3Count = 0, pity = 0, busy = false, animToken = 0;
+  const screen = document.getElementById('screen'), goldFlash = document.getElementById('goldFlash');
+  const recruitVideo = document.getElementById('recruitVideo'), skipBtn = document.getElementById('skipBtn');
+
+  function pick(star) { const a = POOL[star]; return { star, name: a[Math.floor(Math.random() * a.length)] }; }
+  function rollStar() {
+    if (pity >= 199) return 3;
+    const r = Math.random();
+    if (r < 0.03) return 3;
+    if (r < 0.21) return 2;
+    return 1;
+  }
+  function one() {
+    const star = rollStar(), item = pick(star);
+    if (star === 3) { pity = 0; s3Count++; } else { pity++; }
+    return item;
+  }
+  function pull(n) {
+    if (busy) return;
+    const cards = [];
+    for (let i = 0; i < n; i++) cards.push(one());
+    if (n === 10 && !cards.some(c => c.star >= 2)) cards[9] = pick(2);
+    total += n;
+    busy = true;
+    recruit(cards);
+  }
+  function recruit(cards) {
+    const tok = ++animToken;
+    const has3 = cards.some(c => c.star === 3);
+    screen.classList.add('show');
+    let done = false;
+    function proceed() {
+      if (done) return;
+      done = true;
+      recruitVideo.pause();
+      screen.classList.remove('show');
+      if (has3) {
+        goldFlash.classList.add('show');
+        setTimeout(() => {
+          if (tok !== animToken) return;
+          goldFlash.classList.remove('show');
+          render(cards); busy = false;
+        }, 900);
+      } else { render(cards); busy = false; }
+    }
+    recruitVideo.onended = proceed;
+    recruitVideo.onerror = proceed;
+    skipBtn.onclick = proceed;
+    recruitVideo.currentTime = 0;
+    recruitVideo.play().catch(() => proceed());
+  }
+  function render(cards) {
+    totalEl.textContent = total; s3El.textContent = s3Count; pityEl.textContent = Math.max(0, 200 - pity);
+    if (cards.length === 1) { resultsEl.style.gridTemplateColumns = '170px'; resultsEl.style.justifyContent = 'center'; }
+    else { resultsEl.style.gridTemplateColumns = 'repeat(5, 1fr)'; resultsEl.style.justifyContent = ''; }
+    resultsEl.innerHTML = cards.map((c, i) =>
+      '<div class="card s' + c.star + '" style="animation-delay:' + (i * 0.05) + 's">' +
+      '<div class="halo"></div>' +
+      '<div class="face s' + c.star + '">' + c.name.charAt(0) + '</div>' +
+      '<div class="stars s' + c.star + '">' + STAR[c.star] + '</div>' +
+      '<div class="name">' + c.name + '</div></div>').join('');
+  }
+  function reset() {
+    animToken++; busy = false;
+    recruitVideo.pause();
+    screen.classList.remove('show'); goldFlash.classList.remove('show');
+    total = 0; s3Count = 0; pity = 0;
+    totalEl.textContent = 0; s3El.textContent = 0; pityEl.textContent = 200;
+    resultsEl.style.gridTemplateColumns = 'repeat(5, 1fr)'; resultsEl.style.justifyContent = '';
+    resultsEl.innerHTML = '<div class="empty-hint">点「单次招募」或「十次招募」试试手气～</div>';
+  }
+
+  document.getElementById('one').addEventListener('click', () => pull(1));
+  document.getElementById('ten').addEventListener('click', () => pull(10));
+  document.getElementById('reset').addEventListener('click', reset);
+
+  const themeBtn = document.getElementById('themeBtn');
+  try { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark'); } catch (e) {}
+  function sync() { themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙'; }
+  sync();
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+    sync();
+  });
+</script>
+</body>
+</html>

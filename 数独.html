@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>数独 · 小游戏</title>
+<style>
+  :root {
+    --accent: #2055b8; --accent2: #648cc7;
+    --bg: linear-gradient(140deg, #edf1f8 0%, #e8edf6 45%, #e4eaf4 100%);
+    --text: #333d52; --muted: #6a7698;
+    --panel: #ffffff; --border: #e3e8f0; --cell: #eaf0f8;
+  }
+  body.dark {
+    --bg: linear-gradient(140deg, #121826 0%, #141b2c 45%, #161e30 100%);
+    --text: #e7eaf0; --muted: #9aa6bd;
+    --panel: #1b2334; --border: #29324a; --cell: #26304a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: "Microsoft YaHei","PingFang SC",sans-serif;
+    background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; padding: 16px; transition: background .3s, color .3s; }
+  #themeBtn { position: fixed; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 18px; cursor: pointer; z-index: 10; }
+  .wrap { width: 100%; max-width: 440px; }
+  header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 24px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+  .diff { margin-left: auto; display: flex; gap: 6px; }
+  .btn { border: none; cursor: pointer; font-size: 13px; padding: 8px 12px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .btn.ghost { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+  .btn.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .board { display: grid; grid-template-columns: repeat(9, 1fr); border: 2px solid var(--accent2); border-radius: 10px; overflow: hidden; background: var(--border); gap: 1px; }
+  .cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; background: var(--panel); user-select: none; }
+  .cell.given { font-weight: bold; color: var(--text); }
+  .cell.user { color: var(--accent); }
+  .cell.sel { background: var(--cell); }
+  .cell.hl { background: var(--cell); }
+  .cell.err { color: #e05a5a; }
+  .cell.r3 { border-right: 2px solid var(--accent2); }
+  .cell.b3 { border-bottom: 2px solid var(--accent2); }
+  .numpad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; margin-top: 12px; }
+  .num { padding: 10px 0; border-radius: 9px; border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 16px; cursor: pointer; }
+  .num:hover { background: var(--cell); }
+  .actions { display: flex; gap: 8px; margin-top: 12px; }
+  .actions .btn { flex: 1; }
+  .status { text-align: center; font-size: 14px; margin-top: 12px; min-height: 20px; color: var(--accent); }
+</style>
+</head>
+<body>
+<button id="themeBtn" title="切换深色 / 浅色">🌙</button>
+<div class="wrap">
+  <header>
+    <h1>数独</h1>
+    <div class="diff">
+      <button class="btn ghost" data-d="easy">简单</button>
+      <button class="btn ghost" data-d="mid">中等</button>
+      <button class="btn ghost" data-d="hard">困难</button>
+    </div>
+  </header>
+  <div class="board" id="board"></div>
+  <div class="numpad" id="numpad"></div>
+  <div class="actions">
+    <button class="btn ghost" id="hint">提示</button>
+    <button class="btn ghost" id="check">检查</button>
+    <button class="btn ghost" id="clear">清除</button>
+    <button class="btn" id="newGame">新游戏</button>
+  </div>
+  <p class="status" id="status">点击格子，再点下方数字填写</p>
+</div>
+<script>
+  const boardEl = document.getElementById('board'), numpadEl = document.getElementById('numpad'), statusEl = document.getElementById('status');
+  const BLANKS = { easy: 35, mid: 45, hard: 55 };
+  let solution = [], board = [], given = [], sel = -1, diff = 'mid', wrong = new Set();
+
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  function valid(b, r, c, n) {
+    for (let i = 0; i < 9; i++) {
+      if (b[r * 9 + i] === n || b[i * 9 + c] === n) return false;
+    }
+    const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
+    for (let i = br; i < br + 3; i++) for (let j = bc; j < bc + 3; j++) if (b[i * 9 + j] === n) return false;
+    return true;
+  }
+  function solve(b) {
+    const idx = b.indexOf(0);
+    if (idx === -1) return true;
+    const r = Math.floor(idx / 9), c = idx % 9;
+    for (const n of shuffle([1,2,3,4,5,6,7,8,9])) {
+      if (valid(b, r, c, n)) { b[idx] = n; if (solve(b)) return true; b[idx] = 0; }
+    }
+    return false;
+  }
+  function newGame(d) {
+    diff = d || diff;
+    document.querySelectorAll('.diff .btn').forEach(b => b.classList.toggle('active', b.dataset.d === diff));
+    solution = new Array(81).fill(0); solve(solution);
+    given = new Array(81).fill(true);
+    let removed = 0;
+    while (removed < BLANKS[diff]) { const i = Math.floor(Math.random() * 81); if (given[i]) { given[i] = false; removed++; } }
+    board = solution.map((v, i) => given[i] ? v : 0);
+    sel = -1; wrong = new Set(); statusEl.textContent = '点击格子，再点下方数字填写';
+    render();
+  }
+
+  function hlSet(i) {
+    const s = new Set(), r = Math.floor(i / 9), c = i % 9;
+    for (let k = 0; k < 9; k++) { s.add(r * 9 + k); s.add(k * 9 + c); }
+    const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
+    for (let a = br; a < br + 3; a++) for (let b = bc; b < bc + 3; b++) s.add(a * 9 + b);
+    return s;
+  }
+  function isConflict(i) {
+    const v = board[i]; if (!v) return false;
+    const r = Math.floor(i / 9), c = i % 9;
+    for (let k = 0; k < 9; k++) { if (k !== c && board[r * 9 + k] === v) return true; if (k !== r && board[k * 9 + c] === v) return true; }
+    const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
+    for (let a = br; a < br + 3; a++) for (let b = bc; b < bc + 3; b++) { const j = a * 9 + b; if (j !== i && board[j] === v) return true; }
+    return false;
+  }
+
+  function render() {
+    const hl = sel >= 0 ? hlSet(sel) : new Set();
+    boardEl.innerHTML = '';
+    for (let i = 0; i < 81; i++) {
+      const d = document.createElement('div');
+      const r = Math.floor(i / 9), c = i % 9;
+      let cls = 'cell';
+      if (given[i]) cls += ' given'; else if (board[i]) cls += ' user';
+      if (i === sel) cls += ' sel'; else if (hl.has(i)) cls += ' hl';
+      if (!given[i] && (isConflict(i) || wrong.has(i))) cls += ' err';
+      if (c % 3 === 2 && c !== 8) cls += ' r3';
+      if (r % 3 === 2 && r !== 8) cls += ' b3';
+      d.className = cls;
+      d.textContent = board[i] || '';
+      d.addEventListener('click', () => { sel = i; render(); });
+      boardEl.appendChild(d);
+    }
+  }
+
+  function setVal(n) {
+    if (sel < 0 || given[sel]) return;
+    board[sel] = n; wrong.delete(sel); render();
+    if (board.every((v, i) => v === solution[i])) statusEl.textContent = '🎉 恭喜，全部正确！';
+  }
+
+  numpadEl.innerHTML = '';
+  for (let n = 1; n <= 9; n++) {
+    const b = document.createElement('button'); b.className = 'num'; b.textContent = n;
+    b.addEventListener('click', () => setVal(n));
+    numpadEl.appendChild(b);
+  }
+
+  document.getElementById('hint').addEventListener('click', () => {
+    for (let i = 0; i < 81; i++) if (board[i] !== solution[i]) { board[i] = solution[i]; wrong.delete(i); sel = i; render(); return; }
+  });
+  document.getElementById('check').addEventListener('click', () => {
+    wrong = new Set();
+    for (let i = 0; i < 81; i++) if (!given[i] && board[i] && board[i] !== solution[i]) wrong.add(i);
+    statusEl.textContent = wrong.size ? '有 ' + wrong.size + ' 处填错了（红色标出）' : '暂时没有错误～';
+    render();
+  });
+  document.getElementById('clear').addEventListener('click', () => { if (sel >= 0 && !given[sel]) setVal(0); });
+  document.getElementById('newGame').addEventListener('click', () => newGame());
+  document.querySelectorAll('.diff .btn').forEach(b => b.addEventListener('click', () => newGame(b.dataset.d)));
+
+  document.addEventListener('keydown', e => {
+    if (sel < 0) return;
+    const r = Math.floor(sel / 9), c = sel % 9;
+    if (e.key >= '1' && e.key <= '9') setVal(+e.key);
+    else if (e.key === 'Backspace' || e.key === 'Delete') setVal(0);
+    else if (e.key === 'ArrowUp' && r > 0) { sel -= 9; render(); }
+    else if (e.key === 'ArrowDown' && r < 8) { sel += 9; render(); }
+    else if (e.key === 'ArrowLeft' && c > 0) { sel -= 1; render(); }
+    else if (e.key === 'ArrowRight' && c < 8) { sel += 1; render(); }
+  });
+
+  const themeBtn = document.getElementById('themeBtn');
+  try { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark'); } catch (e) {}
+  function sync() { themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙'; }
+  sync();
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+    sync();
+  });
+
+  newGame('mid');
+</script>
+</body>
+</html>

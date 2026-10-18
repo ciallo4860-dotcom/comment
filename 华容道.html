@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>华容道 · 小游戏</title>
+<style>
+  :root {
+    --accent: #2055b8; --accent2: #648cc7;
+    --bg: linear-gradient(140deg, #edf1f8 0%, #e8edf6 45%, #e4eaf4 100%);
+    --text: #333d52; --muted: #6a7698;
+    --panel: #ffffff; --border: #e3e8f0; --cell: #eaf0f8;
+  }
+  body.dark {
+    --bg: linear-gradient(140deg, #121826 0%, #141b2c 45%, #161e30 100%);
+    --text: #e7eaf0; --muted: #9aa6bd;
+    --panel: #1b2334; --border: #29324a; --cell: #26304a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: "Microsoft YaHei","PingFang SC",sans-serif;
+    background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; padding: 16px; transition: background .3s, color .3s; }
+  #themeBtn { position: fixed; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 18px; cursor: pointer; z-index: 10; }
+  .wrap { width: 100%; max-width: 380px; }
+  header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  header h1 { margin: 0; font-size: 24px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+  .btn { border: none; cursor: pointer; font-size: 14px; padding: 8px 14px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; transition: transform .15s, filter .15s; margin-left: auto; }
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: var(--cell); padding: 8px; border-radius: 14px; box-shadow: 0 8px 24px rgba(30,60,120,.14); }
+  .tile { aspect-ratio: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-size: 22px; font-weight: bold; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; transition: transform .1s, filter .15s; }
+  .tile:hover { filter: brightness(1.1); }
+  .tile.empty { background: transparent; cursor: default; }
+  .tile.empty:hover { filter: none; }
+  .tile.done { background: #2e9e5b; }
+  .stats { display: flex; gap: 8px; margin-top: 12px; }
+  .box { flex: 1; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; text-align: center; padding: 6px 8px; }
+  .box span { display: block; font-size: 11px; color: var(--muted); }
+  .box b { font-size: 17px; }
+  .status { text-align: center; font-size: 15px; margin: 12px 0 0; min-height: 22px; color: var(--accent); }
+</style>
+</head>
+<body>
+<button id="themeBtn" title="切换深色 / 浅色">🌙</button>
+<div class="wrap">
+  <header>
+    <h1>华容道 15 格</h1>
+    <button class="btn" id="reset">打乱</button>
+  </header>
+  <div class="board" id="board"></div>
+  <div class="stats">
+    <div class="box"><span>步数</span><b id="moves">0</b></div>
+    <div class="box"><span>用时</span><b id="time">0:00</b></div>
+  </div>
+  <p class="status" id="status">点击空白格旁边的数字移动，拼成 1–15 即胜利</p>
+</div>
+<script>
+  const boardEl = document.getElementById('board');
+  const movesEl = document.getElementById('moves');
+  const timeEl = document.getElementById('time');
+  const statusEl = document.getElementById('status');
+  let tiles = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
+  let moves = 0, seconds = 0, timer = null, started = false, won = false;
+
+  function render() {
+    boardEl.innerHTML = '';
+    for (let i = 0; i < 16; i++) {
+      const d = document.createElement('div');
+      if (tiles[i] === 0) { d.className = 'tile empty'; }
+      else {
+        d.className = 'tile' + (won ? ' done' : '');
+        d.textContent = tiles[i];
+        d.addEventListener('click', () => move(i));
+      }
+      boardEl.appendChild(d);
+    }
+  }
+
+  function adj(a, b) {
+    const ra = Math.floor(a / 4), ca = a % 4, rb = Math.floor(b / 4), cb = b % 4;
+    return (ra === rb && Math.abs(ca - cb) === 1) || (ca === cb && Math.abs(ra - rb) === 1);
+  }
+
+  function fmt(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+
+  function move(i) {
+    if (won || tiles[i] === 0) return;
+    const e = tiles.indexOf(0);
+    if (!adj(i, e)) return;
+    if (!started) { started = true; timer = setInterval(() => { seconds++; timeEl.textContent = fmt(seconds); }, 1000); }
+    tiles[e] = tiles[i]; tiles[i] = 0; moves++; movesEl.textContent = moves;
+    render();
+    if (tiles.every((v, idx) => v === (idx === 15 ? 0 : idx + 1))) {
+      won = true; started = false; clearInterval(timer);
+      statusEl.textContent = '🎉 完成！用了 ' + moves + ' 步 · ' + fmt(seconds);
+      render();
+    }
+  }
+
+  function shuffle() {
+    tiles = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0];
+    won = false; started = false; moves = 0; seconds = 0;
+    clearInterval(timer); movesEl.textContent = '0'; timeEl.textContent = '0:00';
+    statusEl.textContent = '点击空白格旁边的数字移动，拼成 1–15 即胜利';
+    let e = 15;
+    for (let k = 0; k < 300; k++) {
+      const r = Math.floor(e / 4), c = e % 4, cand = [];
+      if (r > 0) cand.push(e - 4);
+      if (r < 3) cand.push(e + 4);
+      if (c > 0) cand.push(e - 1);
+      if (c < 3) cand.push(e + 1);
+      const n = cand[Math.floor(Math.random() * cand.length)];
+      tiles[e] = tiles[n]; tiles[n] = 0; e = n;
+    }
+    render();
+  }
+
+  document.getElementById('reset').addEventListener('click', shuffle);
+
+  const themeBtn = document.getElementById('themeBtn');
+  try { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark'); } catch (e) {}
+  function sync() { themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙'; }
+  sync();
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+    sync();
+  });
+
+  shuffle();
+</script>
+</body>
+</html>
