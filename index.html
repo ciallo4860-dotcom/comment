@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>我的个人主页</title>
+<title>真昼の小站</title>
 <link rel="preconnect" href="https://fonts.loli.net">
 <link href="https://fonts.loli.net/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
 <!--
@@ -66,6 +66,13 @@
     box-shadow: var(--shadow); transition: transform .15s;
   }
   #themeBtn:hover { transform: scale(1.08); }
+  #musicBtn {
+    position: fixed; top: 14px; left: 14px; z-index: 50;
+    width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font-size: 19px; cursor: pointer;
+    box-shadow: var(--shadow); transition: transform .15s;
+  }
+  #musicBtn:hover { transform: scale(1.08); }
   #toTop {
     position: fixed; bottom: 22px; right: 22px; z-index: 50;
     width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border);
@@ -111,13 +118,14 @@
   main {
     position: relative; z-index: 1;
     max-width: 880px; margin: 0 auto; padding: 0 20px 60px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start;
+    column-count: 2; column-gap: 18px;
   }
   .card {
     background: var(--card); border-radius: 16px; padding: 22px 26px; cursor: pointer;
     box-shadow: var(--shadow); border: 1px solid var(--border); transition: transform .18s, box-shadow .18s;
+    break-inside: avoid; margin-bottom: 18px;
   }
-  .card.wide { grid-column: 1 / -1; }
+  .card.wide { column-span: all; }
   .card:hover { transform: translateY(-3px) scale(1.03) rotate(-1deg); box-shadow: 0 8px 22px rgba(60,50,100,.18); }
 
   /* 卡片背景图（可选）──────────────────────────────────────
@@ -154,6 +162,7 @@
   main .card:nth-child(6) { animation-delay: .6s; }
   main .card:nth-child(7) { animation-delay: .7s; }
   main .card:nth-child(8) { animation-delay: .8s; }
+  main .card:nth-child(9) { animation-delay: .9s; }
   footer { animation: fadeUp .6s ease .85s backwards; }
   @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
@@ -227,6 +236,25 @@
   }
   .links a:hover { transform: translateY(-2px); filter: brightness(1.06); }
 
+  /* 生活小工具 */
+  .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+  .tool { border: 1px dashed var(--border); border-radius: 12px; padding: 14px 16px; background: var(--chip); }
+  .tool h3 { margin: 0 0 10px; font-size: 14px; color: var(--text); font-weight: normal; }
+  .tool input[type=text] { width: 100%; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 14px; font-family: inherit; }
+  .tool button { margin-top: 8px; padding: 7px 14px; border-radius: 9px; border: none; cursor: pointer; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; font-family: inherit; font-size: 13px; }
+  .tool button:hover { filter: brightness(1.06); }
+  .tool-result { margin-top: 10px; font-size: 15px; color: var(--accent); min-height: 22px; }
+  .tool-result.big { font-size: 40px; line-height: 1.2; text-align: center; }
+  .tool-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .todo-row { display: flex; gap: 8px; }
+  .todo-row input { flex: 1; }
+  .todo-row button { margin-top: 0; flex-shrink: 0; }
+  .todo-list { list-style: none; margin: 10px 0 0; padding: 0; }
+  .todo-list li { display: flex; align-items: center; gap: 8px; padding: 6px 2px; border-bottom: 1px dashed var(--border); font-size: 14px; }
+  .todo-list li.done span { text-decoration: line-through; color: var(--muted); }
+  .todo-list li .del { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 0 4px; }
+  .todo-list li input[type=checkbox] { cursor: pointer; }
+
   /* 小游戏 */
   .card.no-modal { cursor: default; }
   .card.no-modal:hover { transform: none; box-shadow: var(--shadow); }
@@ -244,16 +272,17 @@
 
   /* 手机 / 窄屏：单栏 */
   @media (max-width: 720px) {
-    main { grid-template-columns: 1fr; padding: 0 16px 50px; }
+    main { column-count: 1; padding: 0 16px 50px; }
     .card { padding: 18px 18px; }
     #themeBtn { width: 38px; height: 38px; font-size: 17px; top: 12px; right: 12px; }
+    #musicBtn { width: 38px; height: 38px; font-size: 17px; top: 12px; left: 12px; }
     .links a { width: 100%; justify-content: center; }
     .games { display: none; }
   }
   @media print {
     body { background: #fff; color: #222; }
-    #themeBtn, #toTop { display: none; }
-    main { grid-template-columns: 1fr; max-width: none; padding: 0; }
+    #themeBtn, #toTop, #musicBtn { display: none; }
+    main { column-count: 1; max-width: none; padding: 0; }
     .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; page-break-inside: avoid; }
     .links a { background: #2c6fb5; width: auto; }
   }
@@ -267,6 +296,8 @@
 
 <button id="themeBtn" title="切换深色 / 浅色">🌙</button>
 <button id="toTop" title="回到顶部">↑</button>
+<button id="musicBtn" title="背景音乐：Kar98kurz - Pixel Time (Bossa Nova Arrange)｜播放/暂停">🎵</button>
+<audio id="bgm" src="pixel-time.mp3" loop preload="auto"></audio>
 
 <main>
 
@@ -286,14 +317,34 @@
     <div class="detail">
       <h2>关于我 · 更多</h2>
       <div class="media">
-        <div class="ph">📷 放一张照片</div>   <!-- ✏️ 有照片就换成 <img src="你的照片.jpg" alt="我"> -->
+        <img src="momoi 2.jpg" alt="我">
         <div class="media-text">
           <h3>我的性格</h3>
-          <p>（写写你的性格特点：认真、乐观、好奇……）</p>
+          <p>典型 INFP-T，慢热又社恐：线下基本透明人，一到网上就变成话痨，尤其聊到喜欢的作品会停不下来。对喜欢的事会非常上头、研究到很细；共情力强，容易被好故事打动（deepseek分析的 我本人看呆了）</p>
           <h3>我的故事</h3>
-          <p>（写一段关于你的小故事或经历）</p>
+          <p>从小看动画、打游戏，慢慢从「只会看的观众」变成「想自己动手做点什么的人」——学编曲、学画画、捣鼓小游戏，还有这个网页，都是这份想法的延伸。愿望就是把这些「喜欢」一件件变成自己的作品（deepseek说得对）</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 成分如下 ═══════════ -->
+  <section class="card wide">
+    <h2>成分如下</h2>
+    <div class="tags">
+      <span>音游：Arcaea . Phigros . DJMAX RESPECT V . CHUNITHM . maimai及其他，没玩过也会试试的</span>   <!-- ✏️ 想加就复制一行 <span>xxx</span>，想删就删掉一行 -->
+      <span>二游：blue archive . 明日方舟 . 终末地 . 鸣潮 . 崩铁 . 异环 . 绝区零一类的 很多淡坑了但是ba依旧登录（）</span>
+      <span>steam常年在线：玩Deadlock  BattleField6  VRChat  DJMAX  CS2  幻想乡麻雀小厨娘（）之类的会多一些,联机游戏也会玩 欢迎一来找我一起play 0v0 （只是这人想玩PEAK和RAFT了而已）</span>
+      <span>Galgame：柚子社作品  Key社作品  ATRI  命运石之门系列  魔女审判  饿殍 哀鸿之类的 还不是老资历 正在提升阅历中（）</span>
+      <span>Amine：孤独摇滚   JOJO   摇曳露营  おにまい！Re:0  无职转生之类的 大概是有看过260+部了 （bro你怎么这么闲）</span>
+      <span>novel,comic：ba同人 k-on </span>
+    </div>
+
+    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
+    <div class="detail">
+      <h2>只是一张照片而已</h2>
+      <img src="1.jpg" alt="1">
+      <p>请支持天童爱丽丝 谢谢喵~</p>
     </div>
   </section>
 
@@ -311,47 +362,33 @@
     <div class="detail">
       <h2>基本信息 · 更多</h2>
       <div class="media">
-        <div class="ph">📷 家乡照片</div>   <!-- ✏️ 换成 <img src="家乡.jpg" alt="家乡"> -->
+       <img src=moyu.jpg">
         <div class="media-text">
-          <h3>家乡</h3>
-          <p>（介绍一下你的家乡）</p>
           <h3>我的经历</h3>
-          <p>（说说你做过的事、难忘的经历）</p>
+          <p>现在是一名高三学生，喜欢二次元和游戏。平时会自己捣鼓一些小游戏、整理学习手册，也搭了这个个人主页。想学的还有编曲、画画、多语言和建模，正在慢慢攒技能点（这也是deepseek干的）</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ═══════════ 成分如下 ═══════════ -->
+  <!-- ═══════════ 我的目标 ═══════════ -->
   <section class="card">
-    <h2>成分如下</h2>
-    <div class="tags">
-      <span>音游：Arcaea . Phigros . DJMAX RESPECT V . CHUNITHM . maimai及其他，没玩过也会试试的</span>   <!-- ✏️ 想加就复制一行 <span>xxx</span>，想删就删掉一行 -->
-      <span>二游：blue archive . 明日方舟 . 终末地 . 鸣潮 . 崩铁 . 异环 . 绝区零一类的 很多淡坑了但是ba依旧登录（）</span>
-      <span>steam常年在线：玩Deadlock  BattleField6  VRChat  DJMAX  CS2  幻想乡麻雀小厨娘（）之类的会多一些,联机游戏也会玩 欢迎一来找我一起play 0v0 （只是这人想玩PEAK和RAFT了而已）</span>
-      <span>Galgame：柚子社作品  Key社作品  ATRI  命运石之门系列  魔女审判  饿殍 哀鸿之类的 还不是老资历 正在提升阅历中（）</span>
-      <span>Amine：孤独摇滚   JOJO   摇曳露营  おにまい！Re:0  无职转生之类的 大概是有看过260+部了 （bro你怎么这么闲）</span>
-      <span>novel,comic：ba同人 k-on </span>
-    </div>
-
-    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
-    <div class="detail">
-      <h2>只是一张照片而已</h2>
-      <img src="1.jpg" alt="1">   <!-- ✏️ 换成 <img src="1.jpg" alt="兴趣"> -->
-      <p>（详细说说每个兴趣爱好的故事：为什么喜欢、坚持了多久、有什么收获）</p>
-    </div>
-  </section>
-
-  <!-- ═══════════ What do you want to do？═══════════ -->
-  <section class="card">
-    <h2>目前想做的</h2>
-    <p class="quote">考完直接启动旅行计划！全国可飞（bushi）然后是2027年的bw和萤火虫的计划 攒钱去霓虹看看！这无疑是令人兴奋的ᕕ(◠ڼ◠)ᕗ  不过碍于本人现在还是牢高三，还是先去看看手上的教辅好了（泣</p>
+    <h2>一些小想法</h2>
+    <p class="quote">「勇者よ。光があなたと共にあらんことを。」<br>勇者啊，愿光与你同在。</p>
+    <p class="quote">「パンパカパーン！プレミアムスマイルをおまけしておきます！」<br>BBKB！附赠的微笑也请您收下吧！</p>
+    <ul class="info">
+      <li>点击卡片有惊喜</li>
+    </ul>
 
     <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
     <div class="detail">
       <h2>更多更长远的打算</h2>
-      <div class="ph">📷 目标相关的照片</div>   <!-- ✏️ 换成 <img src="目标.jpg" alt="目标"> -->
-      <h3>想完成的事</h3>
+      <img src="又寸.jpg" >
+      <h3>just do it</h3>
+      <p>「好きなことを、好きなだけ。」</p>
+      <h3>事情忙完之后</h3>
+      <p>考完直接启动旅行计划，全国可飞（bushi）；攒钱去霓虹看看；冲 2027 年的 BW 和萤火虫；加技能点ing</p>
+      <h3>未来想完成的事</h3>
       <p>1 学会编曲   2 学会画画   3 成为多语言大手子   4 建模高手</p>
       <h3>想买的东西</h3>
       <p>1 kigurumi   2 RTX 5090   3 VR设备   4 数位板   5 一些想买了很久的游戏</p>
@@ -386,8 +423,50 @@
     <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
     <div class="detail">
       <h2>联系我 · 说明</h2>
-      <div class="ph">📷 微信二维码</div>   <!-- ✏️ 换成 <img src="二维码.png" alt="微信二维码"> -->
-      <p>（写写你更喜欢通过什么方式联系、什么时候在线等）</p>
+      <div class="ph"></div>   <!-- ✏️ 换成 <img src="二维码.png" alt="微信二维码"> -->
+      <p>一般晚上在线哦  加好友的话记得备注一下来意 我的朋友</p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 新增卡片（照片 + 一段话）═══════════ -->
+  <section class="card wide no-modal">
+    <h2>这是作者的专属Niger（）</h2>
+    <img src="moyu.jpg">
+    <p>他说他想把自己是Niger的事情靠我的网页示众  真是没办法呢~（摇头）</p>
+  </section>
+
+  <!-- ═══════════ 生活小工具 ═══════════ -->
+  <section class="card wide no-modal">
+    <h2>🧰 生活小工具</h2>
+    <p class="tagline">几个实用（存疑）小玩意儿</p>
+    <div class="tools">
+      <div class="tool">
+        <h3>🎲 随便选一个</h3>
+        <input id="pickInput" type="text" placeholder="用逗号/顿号分隔，如：奶茶、炸鸡、火锅" value="奶茶、炸鸡、寿司、火锅、麻辣烫">
+        <button id="pickBtn" type="button">就它了！</button>
+        <div class="tool-result" id="pickResult">点上面按钮随机选一个～</div>
+      </div>
+      <div class="tool">
+        <h3>✅ 待办清单</h3>
+        <div class="todo-row">
+          <input id="todoInput" type="text" placeholder="记点要做的事…">
+          <button id="todoAdd" type="button">＋</button>
+        </div>
+        <ul id="todoList" class="todo-list"></ul>
+      </div>
+      <div class="tool">
+        <h3>🎯 掷骰子 / 抛硬币</h3>
+        <div class="tool-result big" id="diceResult">🎲</div>
+        <div class="tool-btns">
+          <button id="diceBtn" type="button">掷骰子</button>
+          <button id="coinBtn" type="button">抛硬币</button>
+        </div>
+      </div>
+      <div class="tool">
+        <h3>💬 每日一句</h3>
+        <div class="tool-result" id="quoteText">加载中…</div>
+        <button id="quoteBtn" type="button">换一句</button>
+      </div>
     </div>
   </section>
 
@@ -400,6 +479,12 @@
       <a href="记忆翻牌.html" target="_blank" rel="noopener">🃏 记忆翻牌</a>
       <a href="扫雷.html" target="_blank" rel="noopener">💣 扫雷</a>
       <a href="井字棋.html" target="_blank" rel="noopener">🎯 井字棋</a>
+      <a href="抽卡模拟器.html" target="_blank" rel="noopener">🎰 抽卡模拟器</a>
+      <a href="贪吃蛇.html" target="_blank" rel="noopener">🐍 贪吃蛇</a>
+      <a href="五子棋.html" target="_blank" rel="noopener">⚫ 五子棋</a>
+      <a href="华容道.html" target="_blank" rel="noopener">🧩 华容道</a>
+      <a href="数独.html" target="_blank" rel="noopener">🔢 数独</a>
+      <a href="反应速度测试.html" target="_blank" rel="noopener">⚡ 反应测试</a>
     </div>
     <div class="games">
       <div class="game">
@@ -417,6 +502,30 @@
       <div class="game">
         <h3>井字棋</h3>
         <iframe src="井字棋.html" loading="lazy" title="井字棋"></iframe>
+      </div>
+      <div class="game">
+        <h3>抽卡模拟器</h3>
+        <iframe src="抽卡模拟器.html" loading="lazy" title="抽卡模拟器"></iframe>
+      </div>
+      <div class="game">
+        <h3>贪吃蛇</h3>
+        <iframe src="贪吃蛇.html" loading="lazy" title="贪吃蛇"></iframe>
+      </div>
+      <div class="game">
+        <h3>五子棋</h3>
+        <iframe src="五子棋.html" loading="lazy" title="五子棋"></iframe>
+      </div>
+      <div class="game">
+        <h3>华容道</h3>
+        <iframe src="华容道.html" loading="lazy" title="华容道"></iframe>
+      </div>
+      <div class="game">
+        <h3>数独</h3>
+        <iframe src="数独.html" loading="lazy" title="数独"></iframe>
+      </div>
+      <div class="game">
+        <h3>反应速度测试</h3>
+        <iframe src="反应速度测试.html" loading="lazy" title="反应速度测试"></iframe>
       </div>
     </div>
   </section>
@@ -449,7 +558,7 @@
 
 </main>
 
-<footer>©2026 小山真昼 (使用deepseek辅助制作)</footer>
+<footer>©2026 小山真昼 (使用deepseek辅助制作)<br>BGM：Kar98kurz - Pixel Time (Bossa Nova Arrange)</footer>
 
 <!-- 点击卡片后弹出的详情弹窗 -->
 <div id="modal" class="modal" aria-hidden="true">
@@ -492,6 +601,24 @@
     sendGiscusTheme();
   });
 
+  // 背景音乐（循环播放 + 本地记忆）
+  const bgm = document.getElementById('bgm');
+  const musicBtn = document.getElementById('musicBtn');
+  let musicOn = true;
+  try { musicOn = localStorage.getItem('music') !== 'off'; } catch (e) {}
+  function tryPlay() { if (musicOn) bgm.play().catch(() => {}); }
+  function syncMusic() {
+    musicBtn.textContent = musicOn ? '🎵' : '🔇';
+    if (musicOn) tryPlay(); else bgm.pause();
+  }
+  syncMusic();
+  musicBtn.addEventListener('click', () => {
+    musicOn = !musicOn;
+    try { localStorage.setItem('music', musicOn ? 'on' : 'off'); } catch (e) {}
+    syncMusic();
+  });
+  document.addEventListener('click', tryPlay, { once: true });
+
   // 回到顶部
   const toTop = document.getElementById('toTop');
   window.addEventListener('scroll', () => {
@@ -527,6 +654,91 @@
   modalClose.addEventListener('click', closeModal);
   modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+</script>
+
+<script>
+  // 🧰 生活小工具
+  (function () {
+    // 1. 随便选一个（随机决策）
+    const pickBtn = document.getElementById('pickBtn');
+    const pickInput = document.getElementById('pickInput');
+    const pickResult = document.getElementById('pickResult');
+    pickBtn.addEventListener('click', () => {
+      const items = pickInput.value.split(/[,，、\s]+/).filter(Boolean);
+      if (!items.length) { pickResult.textContent = '先在上面输入几个选项～'; return; }
+      pickResult.textContent = '🎉 ' + items[Math.floor(Math.random() * items.length)];
+    });
+
+    // 2. 待办清单（localStorage 记忆）
+    const todoInput = document.getElementById('todoInput');
+    const todoAdd = document.getElementById('todoAdd');
+    const todoList = document.getElementById('todoList');
+    const TODO_KEY = 'life_todos';
+    let todos = [];
+    try { todos = JSON.parse(localStorage.getItem(TODO_KEY)) || []; } catch (e) {}
+    function saveTodos() { try { localStorage.setItem(TODO_KEY, JSON.stringify(todos)); } catch (e) {} }
+    function renderTodos() {
+      todoList.innerHTML = '';
+      todos.forEach((t, i) => {
+        const li = document.createElement('li');
+        if (t.done) li.className = 'done';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.checked = t.done;
+        cb.addEventListener('change', () => { todos[i].done = cb.checked; saveTodos(); renderTodos(); });
+        const span = document.createElement('span');
+        span.textContent = t.text;
+        const del = document.createElement('button');
+        del.className = 'del'; del.textContent = '✕';
+        del.addEventListener('click', () => { todos.splice(i, 1); saveTodos(); renderTodos(); });
+        li.appendChild(cb); li.appendChild(span); li.appendChild(del);
+        todoList.appendChild(li);
+      });
+    }
+    function addTodo() {
+      const v = todoInput.value.trim();
+      if (!v) return;
+      todos.push({ text: v, done: false });
+      todoInput.value = '';
+      saveTodos(); renderTodos();
+    }
+    todoAdd.addEventListener('click', addTodo);
+    todoInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addTodo(); });
+    renderTodos();
+
+    // 3. 掷骰子 / 抛硬币
+    const diceResult = document.getElementById('diceResult');
+    const diceBtn = document.getElementById('diceBtn');
+    const coinBtn = document.getElementById('coinBtn');
+    const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+    diceBtn.addEventListener('click', () => {
+      const r = Math.floor(Math.random() * 6) + 1;
+      diceResult.textContent = diceFaces[r - 1] + ' ' + r;
+    });
+    coinBtn.addEventListener('click', () => {
+      diceResult.textContent = Math.random() < 0.5 ? '🪙 正面' : '🪙 反面';
+    });
+
+    // 4. 每日一句（句子库可自己改）
+    const quotes = [
+      '做你喜欢的事，就已经是在好好生活了。',
+      '今天也要加油呀，哪怕只前进一点点。',
+      '明年也能一起赏樱就好了',
+      '愿你有一天和重要的人重逢',
+      '我已经，没办法像那样奔跑了',
+      'EL  PSY  CONGROO',
+      'what can i say？ manba out ! ',
+      '1145141919810 ',
+      'sakana~',
+      '开什么玩笑！',
+    ];
+    const quoteText = document.getElementById('quoteText');
+    const quoteBtn = document.getElementById('quoteBtn');
+    function nextQuote() {
+      quoteText.textContent = '「' + quotes[Math.floor(Math.random() * quotes.length)] + '」';
+    }
+    quoteBtn.addEventListener('click', nextQuote);
+    nextQuote();
+  })();
 </script>
 </body>
 </html>
