@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的个人主页</title>
+<link rel="preconnect" href="https://fonts.loli.net">
+<link href="https://fonts.loli.net/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<!--
+  ════════════════════════════════════════════════════════
+  编 辑 指 南（改完可删掉这段注释）
+  ────────────────────────────────────────────────────────
+  1. 右键本文件 →「打开方式」→「记事本」
+  2. 往下找所有带  ✏️  标记的地方，替换成你自己的内容
+  3. 保存（Ctrl+S），双击文件用浏览器打开看效果
+  4. 加/删栏目：复制或删掉一整段 <section class="card …"> … </section>
+     （想让它占整行就写 class="card wide"，想并排就写 class="card"）
+  5. 跳转链接：改「我的链接」里 <a href="..."> 的网址和文字即可
+  6. 换头像：把「头像」那行的 <div> 换成注释里的 <img> 写法
+  ════════════════════════════════════════════════════════
+-->
+<style>
+  :root {
+    --accent: #2055b8;
+    --accent2: #648cc7;
+    --accent3: #9fb0d0;
+    --bg: linear-gradient(140deg, #edf1f8 0%, #e8edf6 45%, #e4eaf4 100%);
+    --card: #ffffff;
+    --card-scrim: rgba(255,255,255,.82);
+    --text: #333d52;
+    --muted: #6a7698;
+    --border: #e3e8f0;
+    --chip: #eaf0f8;
+    --shadow: 0 2px 10px rgba(30,60,120,.08);
+    --blob1: #acc2dc;
+    --blob2: #a3b4d4;
+    --blob3: #7fa0cf;
+  }
+  body.dark {
+    --accent: #6fa0e8;
+    --accent2: #8fb4e0;
+    --accent3: #a8b8d0;
+    --bg: linear-gradient(140deg, #121826 0%, #141b2c 45%, #161e30 100%);
+    --card: #1b2334;
+    --card-scrim: rgba(18,24,38,.84);
+    --text: #e7eaf0;
+    --muted: #9aa6bd;
+    --border: #29324a;
+    --chip: #26304a;
+    --shadow: 0 2px 12px rgba(0,0,0,.4);
+    --blob1: #22345e;
+    --blob2: #28396a;
+    --blob3: #1f2f55;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font-family: "ZCOOL KuaiLe","Microsoft YaHei","PingFang SC",sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh;
+    transition: background .3s, color .3s;
+  }
+  #themeBtn {
+    position: fixed; top: 14px; right: 14px; z-index: 50;
+    width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font-size: 19px; cursor: pointer;
+    box-shadow: var(--shadow); transition: transform .15s;
+  }
+  #themeBtn:hover { transform: scale(1.08); }
+  #toTop {
+    position: fixed; bottom: 22px; right: 22px; z-index: 50;
+    width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--card); color: var(--accent); font-size: 19px; cursor: pointer;
+    box-shadow: var(--shadow); opacity: 0; visibility: hidden; transform: translateY(8px);
+    transition: opacity .25s, visibility .25s, transform .15s;
+  }
+  #toTop.show { opacity: 1; visibility: visible; transform: translateY(0); }
+  #toTop:hover { transform: translateY(-2px); }
+
+  /* 漂浮的艺术光斑 */
+  .blob {
+    position: fixed; border-radius: 50%; filter: blur(70px);
+    z-index: 0; pointer-events: none; opacity: .55;
+  }
+  .blob1 { width: 340px; height: 340px; top: -90px; left: -70px; background: radial-gradient(circle, var(--blob1), transparent 70%); }
+  .blob2 { width: 380px; height: 380px; bottom: -110px; right: -90px; background: radial-gradient(circle, var(--blob2), transparent 70%); }
+  .blob3 { width: 280px; height: 280px; top: 42%; left: 52%; background: radial-gradient(circle, var(--blob3), transparent 70%); }
+
+  .avatar {
+    width: clamp(88px, 20vw, 112px); height: clamp(88px, 20vw, 112px); border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+    color: #fff; font-size: clamp(34px, 8vw, 44px); font-weight: bold;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    margin: 0; box-shadow: 0 10px 26px rgba(44,111,181,.32);
+  }
+  img.avatar { object-fit: cover; width: clamp(88px, 20vw, 112px); height: clamp(88px, 20vw, 112px); }
+  .about-title h1 {
+    display: inline-block; position: relative; padding-bottom: 6px;
+    font-size: clamp(22px, 5vw, 28px); margin: 0 0 2px; letter-spacing: 1px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+  .about-title h1::after {
+    content: ''; position: absolute; left: 4%; right: 4%; bottom: 0; height: 7px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent2), var(--accent));
+    border-radius: 5px; opacity: .7;
+  }
+  .tagline { color: var(--muted); font-size: clamp(13px, 3vw, 15px); margin: 0; }
+
+  /* 桌面端两栏，手机端单栏 */
+  main {
+    position: relative; z-index: 1;
+    max-width: 880px; margin: 0 auto; padding: 0 20px 60px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start;
+  }
+  .card {
+    background: var(--card); border-radius: 16px; padding: 22px 26px; cursor: pointer;
+    box-shadow: var(--shadow); border: 1px solid var(--border); transition: transform .18s, box-shadow .18s;
+  }
+  .card.wide { grid-column: 1 / -1; }
+  .card:hover { transform: translateY(-3px) scale(1.03) rotate(-1deg); box-shadow: 0 8px 22px rgba(60,50,100,.18); }
+
+  /* 卡片背景图（可选）──────────────────────────────────────
+     给某张卡片加 img 类并指定图片即可，例：
+       <section class="card img" style="--img:url('我的照片.jpg'); --pos:center">
+     --img ：图片路径（图片和本文件放同一文件夹，记得加引号）
+     --pos ：裁剪位置 = 图片露哪一块（left / top / right / bottom / center，
+              或 "30% 50%" 这样的坐标：30% 横向、50% 纵向）
+     想让图片透出来更多/更少，改上面 :root 和 body.dark 里的 --card-scrim */
+  .card.img {
+    background-image: linear-gradient(var(--card-scrim), var(--card-scrim)), var(--img);
+    background-size: auto, cover;
+    background-position: center, var(--pos, center);
+    background-color: var(--card);
+  }
+
+  /* 开幕动画 */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes avatarZoom {
+    0%   { opacity: 0; transform: scale(0); }
+    40%  { opacity: 1; transform: scale(1.2); }
+    72%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  .about-head .avatar { animation: avatarZoom 1s ease backwards; }
+  .about-title h1, .about-title .tagline { animation: fadeUp .5s ease .3s backwards; }
+  .about-title .tagline { animation-delay: .45s; }
+  main .card { animation: fadeUp .6s ease backwards; }
+  main .card:nth-child(1) { animation-delay: .1s; }
+  main .card:nth-child(2) { animation-delay: .2s; }
+  main .card:nth-child(3) { animation-delay: .3s; }
+  main .card:nth-child(4) { animation-delay: .4s; }
+  main .card:nth-child(5) { animation-delay: .5s; }
+  main .card:nth-child(6) { animation-delay: .6s; }
+  main .card:nth-child(7) { animation-delay: .7s; }
+  main .card:nth-child(8) { animation-delay: .8s; }
+  footer { animation: fadeUp .6s ease .85s backwards; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  /* 点击卡片弹出的详情弹窗 */
+  .modal {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    background: rgba(15,22,34,.45); backdrop-filter: blur(3px);
+    opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s;
+  }
+  .modal.show { opacity: 1; visibility: visible; }
+  .modal-card {
+    position: relative; width: 100%; max-width: 560px; max-height: 82vh; overflow: auto;
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 24px 26px; box-shadow: 0 20px 50px rgba(0,0,0,.25);
+    transform: translateY(16px) scale(.96); transition: transform .25s;
+  }
+  .modal.show .modal-card { transform: translateY(0) scale(1); }
+  .modal-close {
+    position: absolute; top: 12px; right: 12px; z-index: 2;
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--card); color: var(--muted); font-size: 14px; cursor: pointer;
+  }
+  .modal-close:hover { background: var(--chip); color: var(--text); }
+  .modal-body .card { margin: 0; box-shadow: none; border: none; padding: 0; animation: none; cursor: default; }
+  .modal-body .card:hover { transform: none; }
+  .detail { display: none; }
+  .modal-body .detail { display: block; }
+  .modal-body h2 { font-size: 18px; color: var(--accent); margin: 0 0 12px; padding-left: 10px; border-left: 4px solid var(--accent2); }
+  .modal-body h3 { font-size: 15px; color: var(--text); margin: 14px 0 6px; }
+  .modal-body p { margin: 0 0 10px; }
+  .modal-body ul, .modal-body ol { margin: 0 0 10px; padding-left: 22px; }
+  .modal-body .detail img { max-width: 100%; border-radius: 12px; object-fit: cover; }
+  .modal-body .detail > img { display: block; margin: 0 0 12px; }
+  .modal-body .ph {
+    border-radius: 12px; color: var(--muted);
+    background: linear-gradient(135deg, var(--chip), var(--border));
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .modal-body .detail > .ph { width: 100%; height: 150px; margin: 0 0 14px; }
+  .modal-body .media { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+  .modal-body .media .ph { width: 170px; max-width: 100%; height: 130px; flex-shrink: 0; margin: 0; font-size: 13px; }
+  .modal-body .media img { width: 170px; max-width: 100%; height: 130px; border-radius: 12px; object-fit: cover; flex-shrink: 0; margin: 0; }
+  .modal-body .media-text { flex: 1; min-width: 200px; }
+  .card h2 {
+    font-size: 17px; margin: 0 0 12px; color: var(--accent);
+    padding-left: 10px; border-left: 4px solid var(--accent2);
+  }
+  .about-head {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed var(--border);
+  }
+  .info { list-style: none; margin: 0; padding: 0; }
+  .info li { padding: 7px 0; border-bottom: 1px dashed var(--border); }
+  .info li:last-child { border-bottom: none; }
+  .info span { display: inline-block; width: 68px; color: var(--muted); }
+  .tags { display: flex; flex-wrap: wrap; gap: 9px; }
+  .tags span { padding: 5px 14px; border-radius: 99px; background: var(--chip); color: var(--accent); font-size: 13px; }
+  .quote {
+    font-size: 16px; color: var(--text); font-style: italic; margin: 0;
+    padding-left: 12px; border-left: 3px solid var(--accent3);
+  }
+  .links { display: flex; flex-wrap: wrap; gap: 11px; }
+  .links a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: 11px; text-decoration: none; font-size: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+    box-shadow: 0 3px 10px rgba(44,111,181,.22); transition: transform .15s, filter .15s;
+  }
+  .links a:hover { transform: translateY(-2px); filter: brightness(1.06); }
+
+  /* 小游戏 */
+  .card.no-modal { cursor: default; }
+  .card.no-modal:hover { transform: none; box-shadow: var(--shadow); }
+  .games { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 14px; }
+  .game h3 { font-size: 14px; color: var(--muted); margin: 0 0 8px; font-weight: normal; }
+  .games iframe {
+    width: 100%; height: 400px; border: 1px solid var(--border); border-radius: 12px;
+    background: var(--chip); display: block;
+  }
+
+  /* 评论区 */
+  .giscus { min-height: 220px; margin-top: 14px; }
+
+  footer { position: relative; z-index: 1; text-align: center; color: var(--muted); font-size: 13px; padding: 0 0 36px; }
+
+  /* 手机 / 窄屏：单栏 */
+  @media (max-width: 720px) {
+    main { grid-template-columns: 1fr; padding: 0 16px 50px; }
+    .card { padding: 18px 18px; }
+    #themeBtn { width: 38px; height: 38px; font-size: 17px; top: 12px; right: 12px; }
+    .links a { width: 100%; justify-content: center; }
+    .games { grid-template-columns: 1fr; }
+  }
+  @media print {
+    body { background: #fff; color: #222; }
+    #themeBtn, #toTop { display: none; }
+    main { grid-template-columns: 1fr; max-width: none; padding: 0; }
+    .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; page-break-inside: avoid; }
+    .links a { background: #2c6fb5; width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+
+<button id="themeBtn" title="切换深色 / 浅色">🌙</button>
+<button id="toTop" title="回到顶部">↑</button>
+
+<main>
+
+
+  <!-- ═══════════ 关于我（占整行，含头像 + 名字）═══════════ -->
+  <section class="card wide">
+    <div class="about-head">
+      <img class="avatar" src="头像.jpg" alt="头像">   <!-- ✏️ 换头像就改这里的文件名 -->
+      <div class="about-title">
+        <h1>小山真昼</h1>                      <!-- ✏️ 名字 -->
+        <p class="tagline">重度女儿厨子desu 【この光に意志を込めて…貫け！バランス崩壊！】</p>   <!-- ✏️ 签名 -->
+      </div>
+    </div>
+    <p>我是小山真昼，这里是本人做的神秘无聊小站（虽然根本不知道意义在哪里）,刷到了就稍微看看也不错，偏向于自我介绍的网页</p>
+
+    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
+    <div class="detail">
+      <h2>关于我 · 更多</h2>
+      <div class="media">
+        <div class="ph">📷 放一张照片</div>   <!-- ✏️ 有照片就换成 <img src="你的照片.jpg" alt="我"> -->
+        <div class="media-text">
+          <h3>我的性格</h3>
+          <p>（写写你的性格特点：认真、乐观、好奇……）</p>
+          <h3>我的故事</h3>
+          <p>（写一段关于你的小故事或经历）</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ Profile ═══════════ -->
+  <section class="card">
+    <h2>Profile</h2>
+    <ul class="info">
+      <li><span>身份</span>18岁  是学生(意义深)</li>
+      <li><span>生日</span>12.10</li>
+      <li><span>MBTI</span>INFP-T</li>
+      <li>Ps：线下超级社恐属于网络话痨一类，不会怎么找话题聊，参与话题倒是可以(逃)Orz</li>
+    </ul>
+
+    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
+    <div class="detail">
+      <h2>基本信息 · 更多</h2>
+      <div class="media">
+        <div class="ph">📷 家乡照片</div>   <!-- ✏️ 换成 <img src="家乡.jpg" alt="家乡"> -->
+        <div class="media-text">
+          <h3>家乡</h3>
+          <p>（介绍一下你的家乡）</p>
+          <h3>我的经历</h3>
+          <p>（说说你做过的事、难忘的经历）</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 成分如下 ═══════════ -->
+  <section class="card">
+    <h2>成分如下</h2>
+    <div class="tags">
+      <span>音游：Arcaea . Phigros . DJMAX RESPECT V . CHUNITHM . maimai及其他</span>   <!-- ✏️ 想加就复制一行 <span>xxx</span>，想删就删掉一行 -->
+      <span>二游：blue archive . 明日方舟 . 终末地 . 鸣潮 . 崩铁 . 异环 . 绝区零一类的 很多淡坑了但是ba依旧登录（）</span>
+      <span>steam常年在线：玩Deadlock  BattleField6  VRChat  DJMAX  CS2  幻想乡麻雀小厨娘（）之类的会多一些,联机游戏也会玩 欢迎一来找我一起play 0v0</span>
+      <span>Galgame：柚子社作品  Key社作品  ATRI  命运石之门系列  魔女审判  饿殍 哀鸿之类的 还不是老资历 正在提升阅历中（）</span>
+      <span>Amine：孤独摇滚  JOJO  摇曳露营  Re:0  无职转生之类的 大概是有看过260+部了 （bro你怎么这么闲）</span>
+      <span>novel,comic：ba同人 k-on </span>
+    </div>
+
+    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
+    <div class="detail">
+      <h2>兴趣爱好 · 更多</h2>
+      <div class="ph">📷 兴趣相关照片</div>   <!-- ✏️ 换成 <img src="兴趣.jpg" alt="兴趣"> -->
+      <p>（详细说说每个兴趣爱好的故事：为什么喜欢、坚持了多久、有什么收获）</p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 目标 / 座右铭═══════════ -->
+  <section class="card">
+    <h2>我的目标</h2>
+    <p class="quote">写一句座右铭，或你的理想、想成为的样子。</p>  <!-- ✏️ -->
+
+    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
+    <div class="detail">
+      <h2>我的目标 · 更多</h2>
+      <div class="ph">📷 目标相关的照片</div>   <!-- ✏️ 换成 <img src="目标.jpg" alt="目标"> -->
+      <h3>短期目标</h3>
+      <p>（比如：接下来半年想完成的事）</p>
+      <h3>长期目标</h3>
+      <p>（比如：几年后想成为的样子、想实现的目标）</p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 我的链接（点击跳转）═══════════ -->
+  <section class="card">
+    <h2>我的链接</h2>
+    <div class="links">
+      <a href="https://space.bilibili.com/541693421?spm_id_from=333.1007.0.0" target="_blank" rel="noopener">Bilibili</a>   <!-- ✏️ 改网址和名字，或复制加新按钮 -->
+      <a href="https://steamcommunity.com/profiles/76561199779357938/" target="_blank" rel="noopener">steam</a>   <!-- ✏️ -->
+      <a href="https://www.xiaoheihe.cn/app/user/profile/66244534" target="_blank" rel="noopener">小黑盒</a>   <!-- ✏️ -->
+    </div>
+
+    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
+    <div class="detail">
+      <h2>我的链接 · 说明</h2>
+      <p>（介绍一下这些链接是什么、为什么放它们）</p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 联系方式 ═══════════ -->
+  <section class="card">
+    <h2>Contact information</h2>
+    <ul class="info">
+      <li><span>📫️</span>ciallo4860@gmail.com</li>
+      <li><span>🐧</span>745480483</li>
+    </ul>
+
+    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
+    <div class="detail">
+      <h2>联系我 · 说明</h2>
+      <div class="ph">📷 微信二维码</div>   <!-- ✏️ 换成 <img src="二维码.png" alt="微信二维码"> -->
+      <p>（写写你更喜欢通过什么方式联系、什么时候在线等）</p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 我的小游戏 ═══════════ -->
+  <section class="card wide no-modal">
+    <h2>放点小游戏在这里</h2>
+    <p class="tagline">点开就能玩 · 也可以点按钮全屏打开</p>
+    <div class="links">
+      <a href="2048.html" target="_blank" rel="noopener">🎮 2048</a>
+      <a href="记忆翻牌.html" target="_blank" rel="noopener">🃏 记忆翻牌</a>
+      <a href="扫雷.html" target="_blank" rel="noopener">💣 扫雷</a>
+      <a href="井字棋.html" target="_blank" rel="noopener">🎯 井字棋</a>
+    </div>
+    <div class="games">
+      <div class="game">
+        <h3>2048</h3>
+        <iframe src="2048.html" loading="lazy" title="2048"></iframe>
+      </div>
+      <div class="game">
+        <h3>记忆翻牌</h3>
+        <iframe src="记忆翻牌.html" loading="lazy" title="记忆翻牌"></iframe>
+      </div>
+      <div class="game">
+        <h3>扫雷</h3>
+        <iframe src="扫雷.html" loading="lazy" title="扫雷"></iframe>
+      </div>
+      <div class="game">
+        <h3>井字棋</h3>
+        <iframe src="井字棋.html" loading="lazy" title="井字棋"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 评论区（Giscus）═══════════ -->
+  <section class="card wide no-modal">
+    <h2>评论区</h2>
+    <p class="tagline">欢迎留言，说点什么吧~（评论存在你的 GitHub Discussions）</p>
+
+    <!-- ✏️ Giscus 配置：把下面 4 个 data-* 值换成 giscus.app 生成的：
+         data-repo / data-repo-id / data-category / data-category-id -->
+    <div class="giscus"></div>
+    <script src="https://giscus.app/client.js"
+      data-repo="ciallo4860-dotcom/comment"
+      data-repo-id="R_kgDOVOEvQw"
+      data-category="General"
+      data-category-id="DIC_kwDOVOEvQ84DI13o"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="light"
+      data-lang="zh-CN"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+</main>
+
+<footer>©小山真昼 (使用deepseek辅助制作)</footer>   <!-- ✏️ 名字和年份 -->
+
+<!-- 点击卡片后弹出的详情弹窗 -->
+<div id="modal" class="modal" aria-hidden="true">
+  <div class="modal-card">
+    <button id="modalClose" class="modal-close" title="关闭">✕</button>
+    <div id="modalBody" class="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  // 深色 / 浅色切换（记住选择）
+  const btn = document.getElementById('themeBtn');
+  try {
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+  } catch (e) {}
+  function syncBtn() {
+    btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+  }
+  syncBtn();
+
+  // Giscus 评论主题同步（跟随深色 / 浅色切换）
+  function sendGiscusTheme() {
+    const frame = document.querySelector('iframe.giscus-frame');
+    if (frame) {
+      frame.contentWindow.postMessage(
+        { giscus: { setConfig: { theme: document.body.classList.contains('dark') ? 'dark' : 'light' } } },
+        'https://giscus.app'
+      );
+    }
+  }
+  window.addEventListener('message', (e) => {
+    if (e.origin !== 'https://giscus.app') return;
+    if (e.data && e.data.giscus) sendGiscusTheme();
+  });
+
+  btn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+    syncBtn();
+    sendGiscusTheme();
+  });
+
+  // 回到顶部
+  const toTop = document.getElementById('toTop');
+  window.addEventListener('scroll', () => {
+    toTop.classList.toggle('show', window.scrollY > 300);
+  });
+  toTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // 点击卡片弹出详情弹窗
+  const modal = document.getElementById('modal');
+  const modalBody = document.getElementById('modalBody');
+  const modalClose = document.getElementById('modalClose');
+  function openModal(card) {
+    modalBody.innerHTML = '';
+    const detail = card.querySelector('.detail');
+    const content = detail ? detail.cloneNode(true) : card.cloneNode(true);
+    modalBody.appendChild(content);
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;  // 链接点击不触发弹窗
+      if (card.classList.contains('no-modal')) return;  // 游戏卡：不弹窗
+      openModal(card);
+    });
+  });
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>

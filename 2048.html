@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>2048 · 小游戏</title>
+<style>
+  :root {
+    --accent: #2055b8;
+    --accent2: #648cc7;
+    --bg: linear-gradient(140deg, #edf1f8 0%, #e8edf6 45%, #e4eaf4 100%);
+    --text: #333d52;
+    --muted: #6a7698;
+    --board: #c4d1e6;
+    --cellbg: rgba(255,255,255,.55);
+    --panel: #ffffff;
+    --border: #e3e8f0;
+  }
+  body.dark {
+    --bg: linear-gradient(140deg, #121826 0%, #141b2c 45%, #161e30 100%);
+    --text: #e7eaf0;
+    --muted: #9aa6bd;
+    --board: #273049;
+    --cellbg: rgba(255,255,255,.06);
+    --panel: #1b2334;
+    --border: #29324a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; font-family: "Microsoft YaHei","PingFang SC",sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    transition: background .3s, color .3s;
+  }
+  #themeBtn {
+    position: fixed; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text);
+    font-size: 18px; cursor: pointer; box-shadow: 0 2px 10px rgba(30,60,120,.12);
+  }
+  .wrap { width: 100%; max-width: 460px; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  header h1 { margin: 0; font-size: 30px; letter-spacing: 1px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+  .stats { display: flex; gap: 8px; margin-left: auto; }
+  .box {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 6px 14px; text-align: center; min-width: 72px;
+  }
+  .box span { display: block; font-size: 12px; color: var(--muted); }
+  .box b { font-size: 20px; }
+  .btn {
+    border: none; cursor: pointer; font-size: 14px; padding: 9px 16px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff;
+    box-shadow: 0 3px 10px rgba(44,111,181,.25); transition: transform .15s, filter .15s;
+  }
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+  .board {
+    position: relative; width: min(88vw, 440px); aspect-ratio: 1; margin: 0 auto;
+    background: var(--board); border-radius: 14px; padding: 12px;
+    box-shadow: 0 8px 24px rgba(30,60,120,.16); touch-action: none;
+  }
+  .bg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; height: 100%; }
+  .bg-cell { background: var(--cellbg); border-radius: 10px; }
+  .layer { position: absolute; inset: 0; }
+  .tile {
+    position: absolute; top: 0; left: 0; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; transition: transform .12s ease-in-out;
+  }
+  .tile .num { display: block; }
+  .tile.new .num, .tile.pop .num { animation: pop .2s ease; }
+  .tile.fade { opacity: 0; transition: transform .12s ease-in-out, opacity .12s ease-in-out; }
+  @keyframes pop { 0% { transform: scale(.4); } 60% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+  /* 数字块配色（彩色系） */
+  .tile-2    { background: #f0f4fb; color: #3a4a68; }
+  .tile-4    { background: #d9e6f7; color: #3a4a68; }
+  .tile-8    { background: #a9c9ee; color: #1c3a70; }
+  .tile-16   { background: #7aa5e8; color: #fff; }
+  .tile-32   { background: #5b8dd9; color: #fff; }
+  .tile-64   { background: #4a7bc4; color: #fff; }
+  .tile-128  { background: #e07a5f; color: #fff; }
+  .tile-256  { background: #d95d4e; color: #fff; }
+  .tile-512  { background: #c0485a; color: #fff; }
+  .tile-1024 { background: #9b4b8f; color: #fff; }
+  .tile-2048 { background: #1f3a6e; color: #ffe9a8; box-shadow: 0 0 18px rgba(31,58,110,.5); }
+  .tile-4096 { background: #14213d; color: #ffd166; box-shadow: 0 0 24px rgba(20,33,61,.6); }
+  .tile-super{ background: #0f0f1a; color: #ffd166; box-shadow: 0 0 26px rgba(15,15,26,.7); }
+
+  .overlay {
+    position: absolute; inset: 0; z-index: 5; border-radius: 14px;
+    background: rgba(15,22,34,.55); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s;
+  }
+  .overlay.show { opacity: 1; visibility: visible; }
+  .overlay-box { text-align: center; color: #fff; }
+  .overlay-box h2 { margin: 0 0 6px; font-size: 26px; }
+  .overlay-box p { margin: 0 0 16px; font-size: 14px; opacity: .85; }
+  .overlay-box .btn { margin: 0 5px; }
+  .hint { text-align: center; color: var(--muted); font-size: 13px; margin: 14px 0 0; }
+</style>
+</head>
+<body>
+
+<button id="themeBtn" title="切换深色 / 浅色">🌙</button>
+
+<div class="wrap">
+  <header>
+    <h1>2048</h1>
+    <div class="stats">
+      <div class="box"><span>得分</span><b id="score">0</b></div>
+      <div class="box"><span>最高</span><b id="best">0</b></div>
+    </div>
+    <button class="btn" id="newBtn">新游戏</button>
+  </header>
+
+  <div class="board" id="board">
+    <div class="bg">
+      <div class="bg-cell"></div><div class="bg-cell"></div><div class="bg-cell"></div><div class="bg-cell"></div>
+      <div class="bg-cell"></div><div class="bg-cell"></div><div class="bg-cell"></div><div class="bg-cell"></div>
+      <div class="bg-cell"></div><div class="bg-cell"></div><div class="bg-cell"></div><div class="bg-cell"></div>
+      <div class="bg-cell"></div><div class="bg-cell"></div><div class="bg-cell"></div><div class="bg-cell"></div>
+    </div>
+    <div class="layer" id="layer"></div>
+    <div class="overlay" id="overlay">
+      <div class="overlay-box">
+        <h2 id="overlayTitle"></h2>
+        <p id="overlayText"></p>
+        <button class="btn" id="continueBtn" style="display:none">继续游戏</button>
+        <button class="btn" id="againBtn">再来一局</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="hint">方向键 / 滑动 移动 · 相同数字合并 · 凑出 4096</p>
+</div>
+
+<script>
+  const SIZE = 4, GAP = 12;
+  const board = document.getElementById('board');
+  const layer = document.getElementById('layer');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlayText = document.getElementById('overlayText');
+  const continueBtn = document.getElementById('continueBtn');
+  const againBtn = document.getElementById('againBtn');
+
+  let cell = 0;
+  let tiles = [];
+  let score = 0, best = 0, uid = 0;
+  let reached2048 = false, wonShown = false, over = false, busy = false;
+
+  try { best = +localStorage.getItem('best2048') || 0; } catch (e) {}
+  bestEl.textContent = best;
+
+  function pos(row, col) {
+    return { x: GAP + col * (cell + GAP), y: GAP + row * (cell + GAP) };
+  }
+  function setPos(el, row, col, animate) {
+    const p = pos(row, col);
+    el.style.width = cell + 'px';
+    el.style.height = cell + 'px';
+    if (!animate) el.style.transition = 'none';
+    el.style.transform = 'translate(' + p.x + 'px,' + p.y + 'px)';
+    if (!animate) { void el.offsetWidth; el.style.transition = ''; }
+  }
+  function fontFor(value) {
+    const d = String(value).length;
+    return cell * (d <= 2 ? 0.46 : d === 3 ? 0.36 : 0.27) + 'px';
+  }
+  function tileClass(value) {
+    return value > 4096 ? 'tile-super' : 'tile-' + value;
+  }
+  function makeTile(value, row, col) {
+    const el = document.createElement('div');
+    el.className = 'tile ' + tileClass(value);
+    el.innerHTML = '<span class="num">' + value + '</span>';
+    el.querySelector('.num').style.fontSize = fontFor(value);
+    layer.appendChild(el);
+    setPos(el, row, col, false);
+    return el;
+  }
+  function buildGrid() {
+    const g = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+    tiles.forEach(t => { if (!t.dead) g[t.row][t.col] = t; });
+    return g;
+  }
+
+  function move(dr, dc) {
+    if (busy || over) return;
+    const g = buildGrid();
+    tiles.forEach(t => t.merged = false);
+    const rows = dr === 1 ? [3,2,1,0] : [0,1,2,3];
+    const cols = dc === 1 ? [3,2,1,0] : [0,1,2,3];
+    let moved = false;
+
+    for (const r of rows) for (const c of cols) {
+      const t = g[r][c];
+      if (!t) continue;
+      let fr = r, fc = c;
+      while (true) {
+        const nr = fr + dr, nc = fc + dc;
+        if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE || g[nr][nc]) break;
+        fr = nr; fc = nc;
+      }
+      const nr = fr + dr, nc = fc + dc;
+      if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE) {
+        const nb = g[nr][nc];
+        if (nb && nb.value === t.value && !nb.merged) {
+          nb.value *= 2;
+          nb.merged = true;
+          score += nb.value;
+          if (nb.value === 4096) reached2048 = true;
+          g[r][c] = null;
+          t.dead = true; t.mergeRow = nr; t.mergeCol = nc;
+          moved = true;
+          continue;
+        }
+      }
+      if (fr !== r || fc !== c) {
+        g[r][c] = null; g[fr][fc] = t;
+        t.nextRow = fr; t.nextCol = fc;
+        moved = true;
+      }
+    }
+
+    if (moved) {
+      busy = true;
+      applyMove(() => {
+        spawn();
+        renderScore();
+        if (reached2048 && !wonShown) { wonShown = true; showOverlay(true); }
+        else if (isOver()) { over = true; showOverlay(false); }
+        busy = false;
+      });
+    }
+  }
+
+  function applyMove(done) {
+    for (const t of tiles) {
+      if (t.dead) {
+        setPos(t.el, t.mergeRow, t.mergeCol, true);
+        t.el.classList.add('fade');
+      } else {
+        if (t.nextRow !== undefined) {
+          setPos(t.el, t.nextRow, t.nextCol, true);
+          t.row = t.nextRow; t.col = t.nextCol;
+        }
+        if (t.merged) {
+          const num = t.el.querySelector('.num');
+          num.textContent = t.value;
+          num.style.fontSize = fontFor(t.value);
+          t.el.className = 'tile ' + tileClass(t.value) + ' pop';
+        }
+      }
+    }
+    setTimeout(() => {
+      tiles = tiles.filter(t => !t.dead);
+      tiles.forEach(t => {
+        t.nextRow = t.nextCol = undefined;
+        t.el.classList.remove('pop', 'fade');
+      });
+      done();
+    }, 130);
+  }
+
+  function spawn() {
+    const occupied = new Set(tiles.map(t => t.row * SIZE + t.col));
+    const free = [];
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++)
+      if (!occupied.has(r * SIZE + c)) free.push([r, c]);
+    if (!free.length) return;
+    const p = free[Math.floor(Math.random() * free.length)];
+    const value = Math.random() < 0.9 ? 2 : 4;
+    const el = makeTile(value, p[0], p[1]);
+    el.classList.add('new');
+    tiles.push({ id: uid++, value: value, row: p[0], col: p[1], el: el });
+    setTimeout(() => el.classList.remove('new'), 220);
+  }
+
+  function isOver() {
+    if (tiles.length < SIZE * SIZE) return false;
+    const g = buildGrid();
+    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) {
+      const v = g[r][c].value;
+      if (r + 1 < SIZE && g[r + 1][c].value === v) return false;
+      if (c + 1 < SIZE && g[r][c + 1].value === v) return false;
+    }
+    return true;
+  }
+
+  function renderScore() {
+    scoreEl.textContent = score;
+    if (score > best) {
+      best = score;
+      try { localStorage.setItem('best2048', best); } catch (e) {}
+    }
+    bestEl.textContent = best;
+  }
+
+  function showOverlay(win) {
+    overlayTitle.textContent = win ? '🎉 你赢了！' : '😵 游戏结束';
+    overlayText.textContent = win ? '凑出了 4096！' : '没有可移动的格子了';
+    continueBtn.style.display = win ? 'inline-block' : 'none';
+    overlay.classList.add('show');
+  }
+
+  function reset() {
+    tiles.forEach(t => t.el.remove());
+    tiles = [];
+    score = 0; over = false; reached2048 = false; wonShown = false; busy = false;
+    overlay.classList.remove('show');
+    renderScore();
+    spawn(); spawn();
+  }
+
+  function moveDir(d) {
+    const v = { up: [-1,0], down: [1,0], left: [0,-1], right: [0,1] }[d];
+    move(v[0], v[1]);
+  }
+
+  // 键盘
+  document.addEventListener('keydown', e => {
+    const m = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+    if (m[e.key]) { e.preventDefault(); moveDir(m[e.key]); }
+  });
+
+  // 触屏滑动
+  let tx = 0, ty = 0;
+  board.addEventListener('touchstart', e => {
+    tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+  }, { passive: true });
+  board.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    const dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
+    if (Math.abs(dx) > Math.abs(dy)) moveDir(dx > 0 ? 'right' : 'left');
+    else moveDir(dy > 0 ? 'down' : 'up');
+  }, { passive: true });
+
+  // 深色 / 浅色
+  const themeBtn = document.getElementById('themeBtn');
+  try { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark'); } catch (e) {}
+  function syncTheme() { themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙'; }
+  syncTheme();
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+    syncTheme();
+  });
+
+  document.getElementById('newBtn').addEventListener('click', reset);
+  againBtn.addEventListener('click', reset);
+  continueBtn.addEventListener('click', () => overlay.classList.remove('show'));
+
+  function layout() {
+    cell = (board.clientWidth - 5 * GAP) / 4;
+    tiles.forEach(t => setPos(t.el, t.row, t.col, false));
+  }
+  window.addEventListener('resize', layout);
+
+  layout();
+  reset();
+</script>
+</body>
+</html>

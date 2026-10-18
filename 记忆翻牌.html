@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>记忆翻牌 · 小游戏</title>
+<style>
+  :root {
+    --accent: #2055b8; --accent2: #648cc7;
+    --bg: linear-gradient(140deg, #edf1f8 0%, #e8edf6 45%, #e4eaf4 100%);
+    --text: #333d52; --muted: #6a7698;
+    --panel: #ffffff; --border: #e3e8f0;
+    --cardback: linear-gradient(135deg, #2055b8, #648cc7);
+    --cardfront: #ffffff;
+  }
+  body.dark {
+    --bg: linear-gradient(140deg, #121826 0%, #141b2c 45%, #161e30 100%);
+    --text: #e7eaf0; --muted: #9aa6bd;
+    --panel: #1b2334; --border: #29324a;
+    --cardfront: #24304a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: "Microsoft YaHei","PingFang SC",sans-serif;
+    background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; padding: 16px; transition: background .3s, color .3s; }
+  #themeBtn { position: fixed; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 18px; cursor: pointer; }
+  .wrap { width: 100%; max-width: 430px; }
+  header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 22px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+  .stats { display: flex; gap: 8px; margin-left: auto; }
+  .box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 5px 12px; text-align: center; min-width: 64px; }
+  .box span { display: block; font-size: 11px; color: var(--muted); }
+  .box b { font-size: 18px; }
+  .btn { border: none; cursor: pointer; font-size: 14px; padding: 8px 14px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .card { aspect-ratio: 1; perspective: 600px; cursor: pointer; }
+  .card .inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .35s; }
+  .card.flipped .inner { transform: rotateY(180deg); }
+  .card .face { position: absolute; inset: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; }
+  .card .back { background: var(--cardback); color: #fff; font-size: 24px; }
+  .card .front { background: var(--cardfront); border: 1px solid var(--border); transform: rotateY(180deg); font-size: 34px; }
+  .card.matched .front { box-shadow: 0 0 0 2px var(--accent2); }
+  .overlay { position: fixed; inset: 0; background: rgba(15,22,34,.55); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s; z-index: 10; }
+  .overlay.show { opacity: 1; visibility: visible; }
+  .overlay-box { background: var(--panel); color: var(--text); border-radius: 14px; padding: 26px 30px; text-align: center; }
+  .overlay-box h2 { margin: 0 0 8px; }
+  .overlay-box p { margin: 0 0 16px; color: var(--muted); }
+</style>
+</head>
+<body>
+<button id="themeBtn" title="切换深色 / 浅色">🌙</button>
+<div class="wrap">
+  <header>
+    <h1>记忆翻牌</h1>
+    <div class="stats">
+      <div class="box"><span>步数</span><b id="moves">0</b></div>
+      <div class="box"><span>用时</span><b id="time">0s</b></div>
+    </div>
+    <button class="btn" id="reset">重来</button>
+  </header>
+  <div class="grid" id="grid"></div>
+</div>
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <h2>🎉 全部配对！</h2>
+    <p id="result"></p>
+    <button class="btn" id="again">再来一局</button>
+  </div>
+</div>
+<script>
+  const EMOJI = ['🐱','🐶','🦊','🐼','🐸','🦄','🐧','🦋'];   // ✏️ 想换图案就改这一行（8 个，会两两成对）
+  const grid = document.getElementById('grid');
+  const movesEl = document.getElementById('moves');
+  const timeEl = document.getElementById('time');
+  const overlay = document.getElementById('overlay');
+  const resultEl = document.getElementById('result');
+
+  let first = null, second = null, lock = false, moves = 0, matched = 0, seconds = 0, timer = null;
+
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+  function build() {
+    grid.innerHTML = '';
+    const deck = shuffle([...EMOJI, ...EMOJI]);
+    deck.forEach(emo => {
+      const c = document.createElement('div');
+      c.className = 'card';
+      c.dataset.emo = emo;
+      c.innerHTML = '<div class="inner"><div class="face back">❓</div><div class="face front">' + emo + '</div></div>';
+      c.addEventListener('click', () => flip(c));
+      grid.appendChild(c);
+    });
+  }
+
+  function flip(c) {
+    if (lock || c.classList.contains('flipped') || c.classList.contains('matched')) return;
+    if (!timer) timer = setInterval(() => { seconds++; timeEl.textContent = seconds + 's'; }, 1000);
+    c.classList.add('flipped');
+    if (!first) { first = c; return; }
+    second = c; moves++; movesEl.textContent = moves;
+    lock = true;
+    if (first.dataset.emo === second.dataset.emo) {
+      first.classList.add('matched'); second.classList.add('matched');
+      matched += 2; first = second = null; lock = false;
+      if (matched === 16) win();
+    } else {
+      setTimeout(() => {
+        first.classList.remove('flipped'); second.classList.remove('flipped');
+        first = second = null; lock = false;
+      }, 700);
+    }
+  }
+
+  function win() {
+    clearInterval(timer);
+    resultEl.textContent = '用了 ' + moves + ' 步 · ' + seconds + ' 秒';
+    overlay.classList.add('show');
+  }
+
+  function reset() {
+    clearInterval(timer); timer = null;
+    first = second = null; lock = false; moves = 0; matched = 0; seconds = 0;
+    movesEl.textContent = '0'; timeEl.textContent = '0s';
+    overlay.classList.remove('show');
+    build();
+  }
+
+  document.getElementById('reset').addEventListener('click', reset);
+  document.getElementById('again').addEventListener('click', reset);
+
+  const themeBtn = document.getElementById('themeBtn');
+  try { if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark'); } catch (e) {}
+  function sync() { themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙'; }
+  sync();
+  themeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark');
+    try { localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+    sync();
+  });
+
+  build();
+</script>
+</body>
+</html>
