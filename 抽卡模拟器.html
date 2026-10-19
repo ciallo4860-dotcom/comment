@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>招募 · BA 风格抽卡</title>
+<title>Blue Archive抽卡模拟器</title>
 <style>
   :root {
     --accent: #2d8ce6; --accent2: #5bb0ff;
@@ -83,11 +83,11 @@
     </div>
   </header>
   <div class="controls">
-    <button class="btn" id="one">单次招募</button>
-    <button class="btn" id="ten">十次招募</button>
+    <button class="btn" id="one">招募1次</button>
+    <button class="btn" id="ten">招募10次</button>
     <button class="btn ghost" id="reset">重置</button>
   </div>
-  <div id="results"><div class="empty-hint">点「单次招募」或「十次招募」试试手气～</div></div>
+  <div id="results"><div class="empty-hint">孩子来体验ba同款概率抽卡（）（btw我把一星不可招募角色放进去了）</div></div>
   <p class="hint">★ 三星 3% · 二星 18% · 一星 79%<br>十次招募保底一张二星以上 · 200 招募必出三星</p>
 </div>
 
@@ -96,14 +96,14 @@
   <button class="skip" id="skipBtn">跳过 ⏭</button>
 </div>
 <div class="gold-flash" id="goldFlash">
-  <div class="gold-text">★ 3★ ★</div>
+  <div class="gold-text">★ ★ ★</div>
 </div>
 <script>
   // ✏️ 卡池可自行增删（名字随便改）
   const POOL = {
-    3: ['白子', '星野', '未花', '日奈', '阿露', '若藻', '玛丽', '花梨', '爱丽丝', '凯伊'],
-    2: ['芹香', '千夏', '伊织', '绫音', '睦月', '加代子', '野乃香', '菲娜'],
-    1: ['静子', '日步美', '春', '美咲', '惠', '雅美', '爱瑠', '小空']
+    3: ['白子', '星野', '未花', '星野(临战)', '星野(泳装)', '白子(泳装)', '白子(骑行服)', '白字*恐怖', '芹香(正月)', '芹香(泳装)', '野宫(泳装)', '一花', '和纱', '盒纱(乐队)', '圣娅', '圣娅(泳装)', '夏', '夏(乐队)', '好美(乐队)', '小春', '忧', '忧(泳装)', '日向', '日向(泳装)', '日富美', '日富美(泳装)', '未花(泳装)', '梓', '梓(泳装)', '樱子', '樱子(偶像)', '渚', '渚(泳装)', '玛丽(体操服)', '玛丽(偶像)', '玲纱', '玲纱(魔法)', '真白', '真白(泳装)', '美弥', '花子(泳装)', '花江(圣诞节)', '芹娜(圣诞节)', '莲见(泳装)', '铃美(魔法)', '鹤城', '亚子', '亚子(礼服)', '伊吕波', '伊吕波(泳装)', '日奈(泳装)', '日奈(礼服)', '明里(正月)', '泉', '伊吹(泳装)', '伊织', '伊织(泳装)', '佳代子', '佳代子(正月)', '佳代子(礼服)', '千夏(温泉)', '千明', '惠', '晴奈', '晴奈(体操服)', '晴奈(正月)', '朱莉(打工)', '枫香(正月)', '泉(正月)', '濑名', '濑名(私服)', '真琴', '日奈', '阿露', '若藻', '玛丽', '花梨', '爱丽丝', '爱丽丝(临战)', '爱丽丝(女仆)', '绿', '绿(女仆)', '艾米', '艾米(临战)', '艾米(泳装)', '桃井(女仆)', '柚子', '柚子(临战)', '诺亚', '诺亚(睡衣)', '小雪', '小雪(睡衣)', '时', '时(兔女郎)', '千寻', '真纪', '真纪(露营)', '千世(泳装)', '宫子', '宫子(泳装)', '萌绘', '萌绘(泳装)', '光', '望', '初音未来', '操祈', '美琴', '琴音', '心', '莱娜', '艾利', '美代', '纺', '律', '庚', '冬', '胡桃', '妮可', '日和', '日和(泳装)', '昂', '莲华', '美游', '安娜', '八云', '玛丽娜', '留美', '丽情', '南', '心奈', '瞬', '瞬(幼女)', '瞬(泳装)', '雪玲(泳装)', '野兽先辈(?)', '凯伊'],
+    2: ['芹香', '绫音', '睦月', '佳代子', '野宫', '玛丽', '花江', '莲见', '明里', '枫香', '纯子', '优香', '桃井', '晴', '歌原', '茜', '红叶', '桐乃', '千世', '椿', '莲华(泳装)', '静子', '爱莉', '花子', '菲娜'],
+    1: ['朱莉', '菲娜', '春', '美弥(偶像)', '满', '伊吹', '兰舞', '吹雪', '和香', '时(临战)', '铃美', '小玉', '纯子(正月)', '明日奈', '泪子', '音葵', '青叶', '美游(泳装)', '亚津子(泳装)', '静子(泳装)', '桐乃(泳装)', '柚子(女仆)', '爱莉(乐队)', '芹娜']
   };
   const STAR = { 3: '★★★', 2: '★★', 1: '★' };
   const totalEl = document.getElementById('total'), s3El = document.getElementById('s3'), pityEl = document.getElementById('pity');
@@ -177,7 +177,7 @@
     total = 0; s3Count = 0; pity = 0;
     totalEl.textContent = 0; s3El.textContent = 0; pityEl.textContent = 200;
     resultsEl.style.gridTemplateColumns = 'repeat(5, 1fr)'; resultsEl.style.justifyContent = '';
-    resultsEl.innerHTML = '<div class="empty-hint">点「单次招募」或「十次招募」试试手气～</div>';
+    resultsEl.innerHTML = '<div class="empty-hint">点「招募1次」或「招募10次」试试手气～</div>';
   }
 
   document.getElementById('one').addEventListener('click', () => pull(1));
