@@ -213,16 +213,6 @@
   .modal-body ul, .modal-body ol { margin: 0 0 10px; padding-left: 22px; }
   .modal-body .detail img { max-width: 100%; border-radius: 12px; object-fit: cover; }
   .modal-body .detail > img { display: block; margin: 0 0 12px; }
-  .modal-body .ph {
-    border-radius: 12px; color: var(--muted);
-    background: linear-gradient(135deg, var(--chip), var(--border));
-    display: flex; align-items: center; justify-content: center; font-size: 14px;
-  }
-  .modal-body .detail > .ph { width: 100%; height: 150px; margin: 0 0 14px; }
-  .modal-body .media { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
-  .modal-body .media .ph { width: 170px; max-width: 100%; height: 130px; flex-shrink: 0; margin: 0; font-size: 13px; }
-  .modal-body .media img { width: 170px; max-width: 100%; height: 130px; border-radius: 12px; object-fit: cover; flex-shrink: 0; margin: 0; }
-  .modal-body .media-text { flex: 1; min-width: 200px; }
   .card h2 {
     font-size: 17px; margin: 0 0 12px; color: var(--accent);
     padding-left: 10px; border-left: 4px solid var(--accent2);
@@ -392,7 +382,7 @@
 
 
   <!-- ═══════════ 关于我（占整行，含头像 + 名字）═══════════ -->
-  <section class="card wide">
+  <section class="card wide no-modal">
     <div class="about-head">
       <img class="avatar" src="头像.jpg" alt="头像">   <!-- ✏️ 换头像就改这里的文件名 -->
       <div class="about-title">
@@ -402,23 +392,10 @@
     </div>
     <p>我是小山真昼(oyama mahiru) 这里是本人做的神秘小站（虽然根本不知道意义在哪里，大概是自我介绍用的）,刷到了就稍微看看也不错，可以的话可以看一下然后留个言再走（）我喜欢你</p>
 
-    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
-    <div class="detail">
-      <h2>111</h2>
-      <div class="media">
-        <img src="momoi 2.jpg" alt="我">
-        <div class="media-text">
-          <h3>111</h3>
-          <p>典型 INFP-T，慢热又社恐：线下基本透明人，一到网上就变成话痨，尤其聊到喜欢的作品会停不下来。对喜欢的事会非常上头、研究到很细；共情力强，容易被好故事打动（deepseek分析的 我本人看呆了）</p>
-          <h3>我的故事</h3>
-          <p>从小看动画、打游戏，慢慢从「只会看的观众」变成「想自己动手做点什么的人」——学编曲、学画画、捣鼓小游戏，还有这个网页，都是这份想法的延伸。愿望就是把这些「喜欢」一件件变成自己的作品（deepseek说得对）</p>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ═══════════ 成分如下 ═══════════ -->
-  <section class="card wide">
+  <section class="card wide no-modal">
     <h2>成分如下</h2>
     <div class="tags">
       <span>音游：Arcaea . Phigros . DJMAX RESPECT V . CHUNITHM . maimai及其他，没玩过也会试试的</span>   <!-- ✏️ 想加就复制一行 <span>xxx</span>，想删就删掉一行 -->
@@ -429,16 +406,10 @@
       <span>novel,comic：ba同人 k-on </span>
     </div>
 
-    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
-    <div class="detail">
-      <h2>只是一张照片而已</h2>
-      <img src="1.jpg" alt="1">
-      <p>请支持天童爱丽丝 谢谢喵~</p>
-    </div>
   </section>
 
   <!-- ═══════════ Profile ═══════════ -->
-  <section class="card">
+  <section class="card no-modal">
     <h2>Profile</h2>
     <ul class="info">
       <li><span>身份</span>18岁  是学生(意义深)</li>
@@ -447,17 +418,6 @@
       <li>Ps：线下超级社恐属于网络话痨一类，不会怎么找话题聊，参与话题倒是可以(逃)Orz</li>
     </ul>
 
-    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
-    <div class="detail">
-      <h2>more</h2>
-      <div class="media">
-       <img src="moyu.jpg">
-        <div class="media-text">
-          <h3>我的经历</h3>
-          <p>现在是一名高三学生，喜欢二次元和游戏。平时会自己捣鼓一些小游戏、整理学习手册，也搭了这个个人主页。想学的还有编曲、画画、多语言和建模，正在慢慢攒技能点（这也是deepseek干的）</p>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ═══════════ 我的目标 ═══════════ -->
@@ -485,7 +445,7 @@
   </section>
 
   <!-- ═══════════ 我的链接（点击跳转）═══════════ -->
-  <section class="card">
+  <section class="card no-modal">
     <h2>一些神秘链接</h2>
     <div class="links">
       <a href="https://space.bilibili.com/541693421?spm_id_from=333.1007.0.0" target="_blank" rel="noopener">Bilibili</a>   <!-- ✏️ 改网址和名字，或复制加新按钮 -->
@@ -494,27 +454,16 @@
       <a href="https://vrchat.com/home/user/usr_88ab2d41-d0d8-4ed5-a81e-cec9ccdde431" target="_blank" rel="noopener">VRChat</a>
     </div>
 
-    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
-    <div class="detail">
-      <h2>哇！你点进来了</h2>
-      <p>这里什么都没有 真遗憾(T_T)</p>
-    </div>
   </section>
 
   <!-- ═══════════ 联系方式 ═══════════ -->
-  <section class="card">
+  <section class="card no-modal">
     <h2>Contact information</h2>
     <ul class="info">
       <li><span>📫️</span>ciallo4860@gmail.com</li>
       <li><span>🐧</span>745480483</li>
     </ul>
 
-    <!-- ✏️ 点击本卡片弹出的更详细介绍 -->
-    <div class="detail">
-      <h2>联系我 · 说明</h2>
-      <div class="ph"></div>   <!-- ✏️ 换成 <img src="二维码.png" alt="微信二维码"> -->
-      <p>一般晚上在线哦  加好友的话记得备注一下来意 我的朋友</p>
-    </div>
   </section>
 
   <!-- ═══════════ 新增卡片（照片 + 一段话）═══════════ -->
