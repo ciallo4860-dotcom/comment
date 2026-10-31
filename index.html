@@ -100,6 +100,14 @@
     margin: 0; box-shadow: 0 10px 26px rgba(44,111,181,.32);
   }
   img.avatar { object-fit: cover; width: clamp(88px, 20vw, 112px); height: clamp(88px, 20vw, 112px); }
+  /* 兜底：任何图片都不会撑破卡片 / 弹窗 */
+  img { max-width: 100%; height: auto; }
+  /* 正文大图（如 moyu.jpg）：随屏宽缩放、最宽 640px、居中、统一 16:9 */
+  .card .photo {
+    display: block; width: 100%; max-width: 640px; height: auto;
+    aspect-ratio: 16 / 9; object-fit: cover;
+    margin: 0 auto 14px; border-radius: 12px;
+  }
   .about-title h1 {
     display: inline-block; position: relative; padding-bottom: 6px;
     font-size: clamp(22px, 5vw, 28px); margin: 0 0 2px; letter-spacing: 1px;
@@ -512,7 +520,7 @@
   <!-- ═══════════ 新增卡片（照片 + 一段话）═══════════ -->
   <section class="card wide no-modal">
     <h2>这是作者的专属Niger（）</h2>
-    <img src="moyu.jpg">
+    <img class="photo" src="moyu.jpg" alt="墨岩">
     <p>他说他想把自己是Niger的事情靠我的网页示众  真是没办法呢~（摇头）@墨岩sama</p>
   </section>
 
